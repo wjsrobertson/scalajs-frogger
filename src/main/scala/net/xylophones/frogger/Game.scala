@@ -107,5 +107,7 @@ class Sprite(image: Image, frameWidth: Int) extends Layer {
 
   def setFrame(frame: Int) = this.frame = frame % numFrames
 
-  def apply(image: Image) = new Sprite(image, image.element.width)
+  def apply(image: Image) = new Sprite(image, img.width)
+
+  def midPoint() = (x + frameWidth/2, y + img.height/2)
 }

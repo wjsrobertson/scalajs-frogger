@@ -3,8 +3,7 @@ package net.xylophones.frogger
 class Channel(contents: Array[Int], velocity: Int) extends TiledLayer(new Image("img/tiles.png"), 16, 16, contents) {
 
   private var currentOffset = 0
-
-  val scrollBoundary = -tileWidth
+  private val scrollBoundary = -tileWidth
 
   def update = {
     moveBy(velocity, 0)
@@ -21,10 +20,16 @@ class Channel(contents: Array[Int], velocity: Int) extends TiledLayer(new Image(
     }
   }
 
-  def isDeadlyCollision(sprite: Sprite) = getCellRectangles().zipWithIndex.map {
-    case (v, i) if v.intersects(sprite) => i
-  }.flatMap(Cell.fromIndex).map(_.cellType())
+  def isDeadlyCollision(sprite: Sprite) =
+    spriteCell(sprite, CellType.Deadly, (s: Sprite,r: Rectangular) => r.intersects(sprite))
 
+  def isLanding(sprite: Sprite) =
+    spriteCell(sprite, CellType.Moving, (s: Sprite,r: Rectangular) => r.contains(sprite.midPoint()))
+
+  private def spriteCell(sprite: Sprite, t: CellType.CellTypeVal, relationship: (Sprite, Rectangular) => Boolean)
+    = getCellRectangles().zipWithIndex.map {
+    case (r, i) if relationship(sprite, r) => contents(i)
+  }.flatMap(Cell.fromIndex).map(_.cellType).contains(t)
 
   private def shuntCells(offset: Int): Unit = {
     currentOffset = (currentOffset + offset + contents.length) % contents.length
@@ -35,36 +40,34 @@ class Channel(contents: Array[Int], velocity: Int) extends TiledLayer(new Image(
   }
 
   private def moveByCells(numCells: Int) = moveBy(numCells * tileWidth, 0)
-
 }
 
-private object CellType extends Enumeration {
-  type CellType = Value
-  val Moving, Deadly, Safe = CellType
+object CellType extends Enumeration {
+  case class CellTypeVal() extends super.Val(0)
+  val Moving, Deadly, Safe = CellTypeVal()
 }
 
-private object Cell extends Enumeration {
-  case class Cell(override val id: Int, cellType: CellType.type) extends super.Val(id)
+object Cell extends Enumeration {
+  case class CellVal(override val id: Int, cellType: CellType.CellTypeVal) extends super.Val(id)
 
-  val Empty = Cell(0, CellType.Safe)
-  val Border = Cell(1, CellType.Safe)
-  val River = Cell(2, CellType.Deadly)
-  val Road = Cell(3, CellType.Safe)
-  val Car1 = Cell(4, CellType.Deadly)
-  val Car2 = Cell(5, CellType.Deadly)
-  val Car3 = Cell(6, CellType.Deadly)
-  val LogLeft = Cell(7, CellType.Moving)
-  val LogMiddle = Cell(8, CellType.Moving)
-  val LogRight = Cell(9, CellType.Moving)
-  val LorryLeft = Cell(10, CellType.Deadly)
-  val LorryRight = Cell(11, CellType.Deadly)
-  val Tractor = Cell(12, CellType.Deadly)
-  val Turtle = Cell(13, CellType.Moving)
-  val AlligatorTail = Cell(14, CellType.Moving)
-  val AlligatorMiddle = Cell(15, CellType.Moving)
-  val AlligatorHead = Cell(16, CellType.Moving)
-  val AlligatorOpen = Cell(17, CellType.Deadly)
+  val Empty = CellVal(0, CellType.Safe)
+  val Border = CellVal(1, CellType.Safe)
+  val River = CellVal(2, CellType.Deadly)
+  val Road = CellVal(3, CellType.Safe)
+  val Car1 = CellVal(4, CellType.Deadly)
+  val Car2 = CellVal(5, CellType.Deadly)
+  val Car3 = CellVal(6, CellType.Deadly)
+  val LogLeft = CellVal(7, CellType.Moving)
+  val LogMiddle = CellVal(8, CellType.Moving)
+  val LogRight = CellVal(9, CellType.Moving)
+  val LorryLeft = CellVal(10, CellType.Deadly)
+  val LorryRight = CellVal(11, CellType.Deadly)
+  val Tractor = CellVal(12, CellType.Deadly)
+  val Turtle = CellVal(13, CellType.Moving)
+  val AlligatorTail = CellVal(14, CellType.Moving)
+  val AlligatorMiddle = CellVal(15, CellType.Moving)
+  val AlligatorHead = CellVal(16, CellType.Moving)
+  val AlligatorOpen = CellVal(17, CellType.Deadly)
 
-  def fromIndex(index: Int): Option[Cell] = values.find(v => v.id == index).asInstanceOf[Cell]
-
+  def fromIndex(index: Int): Option[Cell.CellVal] = values.find(v => v.id == index).map(_.asInstanceOf[Cell.CellVal])
 }
