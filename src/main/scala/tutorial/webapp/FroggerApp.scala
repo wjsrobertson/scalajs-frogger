@@ -8,6 +8,7 @@ import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.HTMLImageElement
 import net.xylophones.frogger._
 
+import scala.collection.immutable
 import scala.scalajs.js.annotation.JSExportTopLevel
 
 object FroggerApp extends JSApp {
@@ -47,8 +48,15 @@ object FroggerApp extends JSApp {
     sprite.paint(ctx)
     */
 
-    val home = HomeFactory.create(1)
-    home.draw(ctx)
+    val homes = (0 to 4).map(HomeFactory.create)
+    homes.foreach(h => h.draw(ctx))
+
+    var offset = 48
+    val channels = ChannelFactory.channels(0)
+    channels.zipWithIndex.foreach{ case (c, i) =>
+        c.moveTo(0, (i * 32) + offset)
+    }
+    channels.foreach(c => c.draw(ctx))
 
     //ctx.drawImage(frog.element, 48, 0, 16, 16, 0, 0, 16, 16)
   }

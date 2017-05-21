@@ -95,7 +95,7 @@ object ChannelFactory {
 
 class Channel(tiles: Array[Cell.CellVal], velocity: Int)
   extends TiledLayer(
-    new TiledImage(new Image("img/tiles.png"), 16, 16), 1, 16, Array(tiles.map(t => Tile(t.id, 0)))) {
+    new TiledImage(new Image("img/tiles2.png"), 32, 32), 1, 16, Array(tiles.map(t => Tile(t.id, 0)))) {
 
   private var currentOffset = 0
 

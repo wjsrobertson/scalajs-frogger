@@ -1,23 +1,12 @@
 package net.xylophones.frogger
 
-import net.xylophones.frogger.ChannelFactory.cell
-import net.xylophones.frogger.HomeFactory.typeMask
-
-import scala.collection.immutable
-import scala.collection.mutable.Stack
-
 object HomeFactory {
-
-  val rows = 3
-  val cols = 24
-
-  val cellDimensions = (4, 8)
 
   val deadlyMask =
     """
-      |111111111111000000000000
-      |111000000111111111111111
-      |111000000111111111111111
+      |1111111111111000000000000
+      |1110000001111111111111111
+      |1110000001111111111111111
     """.stripMargin
 
   val isDeadly = deadlyMask
@@ -27,9 +16,9 @@ object HomeFactory {
 
   val typeMask =
     """
-      |HHHHHHHHHHHH------------
-      |HHHHWWWWHHHHFFFFBBBBAAAA
-      |HHHHWWWWHHHHFFFFBBBBAAAA
+      |HHHHHHHHHHHHH------------
+      |HHHHWWWWHHHHHFFFFBBBBAAAA
+      |HHHHWWWWHHHHHFFFFBBBBAAAA
     """.stripMargin.split("\n").map(_.trim).filter(_.length != 0)
 
   def getImageTiles(v: Char): Array[HomeCell] = {
@@ -42,9 +31,9 @@ object HomeFactory {
 
   private val free =
     """
-      |HHHHHHHHHHHH
-      |HHHHXXXXHHHH
-      |HHHHXXXXHHHH
+      |HHHHHHHHHHHHH
+      |HHHHXXXXHHHHH
+      |HHHHXXXXHHHHH
     """.stripMargin.split("\n").map(_.trim).filter(_.length != 0)
 
   def getTiles(xChar: Char): Array[Array[HomeCell]] = {
@@ -69,11 +58,13 @@ object HomeFactory {
     }
   }
 
-  def create(id: Int) = {
-    new Home(id, getTiles('A'))
+  def create(id: Int): Home = {
+    new Home(id, getTiles('W'))
   }
 }
 
 class HomeCell(val tile: Tile)
 
-class Home(id: Int, tiles: Array[Array[HomeCell]]) extends TiledLayer(new TiledImage(new Image("img/top.png"), 4, 8), 3, 12, tiles.map { row => row.map { cell => cell.tile } })
+class Home(id: Int, tiles: Array[Array[HomeCell]]) extends TiledLayer(new TiledImage(new Image("img/top3.png"), 8, 16), 3, 13, tiles.map { row => row.map { cell => cell.tile } }) {
+  moveTo(id * columns * tileImage.tileWidth, y)
+}
