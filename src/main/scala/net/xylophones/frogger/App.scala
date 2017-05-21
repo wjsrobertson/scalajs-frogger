@@ -1,17 +1,13 @@
-package tutorial.webapp
+package net.xylophones.frogger
+
+import org.scalajs.dom
+import org.scalajs.dom.document
+import org.scalajs.dom.html.Canvas
 
 import scala.scalajs.js.JSApp
-import org.scalajs.dom
-import dom.document
-import dom.window
-import org.scalajs.dom.html.Canvas
-import org.scalajs.dom.raw.HTMLImageElement
-import net.xylophones.frogger.{TiledLayer, _}
-
-import scala.collection.immutable
 import scala.scalajs.js.annotation.JSExportTopLevel
 
-object FroggerApp extends JSApp {
+object App extends JSApp {
   val canvas = document.createElement("canvas").asInstanceOf[Canvas]
   val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
   val frog = new Image("img/tiles.png")
