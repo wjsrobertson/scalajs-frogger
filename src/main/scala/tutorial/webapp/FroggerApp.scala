@@ -38,14 +38,17 @@ object FroggerApp extends JSApp {
     //val tile = new TiledLayer(new TiledImage(frog, 16, 16), 1, 16, Array(Array(0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0)))
     //tile.draw(ctx)
 
-    val channels = ChannelFactory.channels(0)
-    channels(0).draw(ctx)
+    //val channels = ChannelFactory.channels(0)
+    //channels(0).draw(ctx)
 
     /*
     val sprite = new Sprite(frog, 16)
     sprite.setFrame(5)
     sprite.paint(ctx)
     */
+
+    val home = HomeFactory.create(1)
+    home.draw(ctx)
 
     //ctx.drawImage(frog.element, 48, 0, 16, 16, 0, 0, 16, 16)
   }

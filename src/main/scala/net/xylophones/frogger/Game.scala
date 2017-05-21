@@ -74,16 +74,19 @@ abstract class Layer(private var xPos: Int = 0,
 
 trait CellCoords {
   def col: Int
+
   def row: Int
 }
 
+case class Tile(col: Int, row: Int, id: Int = 0)
+
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
-class TiledLayer(protected val tileImage: TiledImage, rows: Int, columns: Int, contents: Array[Array[Int]]) extends Layer {
+class TiledLayer(protected val tileImage: TiledImage, rows: Int, columns: Int, contents: Array[Array[Tile]]) extends Layer {
   val padding = 0
   protected val img = tileImage.image.element
 
-  def setCell(row: Int, column: Int, id: Int) = contents(row)(column) = id
+  def setCell(row: Int, column: Int, id: Tile) = contents(row)(column) = id
 
   def getCell(row: Int, column: Int) = contents(row)(column)
 
@@ -98,12 +101,12 @@ class TiledLayer(protected val tileImage: TiledImage, rows: Int, columns: Int, c
   }
 
   override def draw(context: CanvasRenderingContext2D) = {
-    for (column <- 0 until columns) {
-      for (row <- 0 until rows) {
-        val tileId = contents(row)(column)
+    for (row <- 0 until rows) {
+      for (column <- 0 until columns) {
+        val tile = contents(row)(column)
 
-        val tileCol = tileId % columns
-        val tileRow = tileId / columns
+        val tileCol = tile.col
+        val tileRow = tile.row
 
         val imgXOffset = tileCol * tileImage.tileWidth
         val imgYOffset = tileRow * tileImage.tileHeight
