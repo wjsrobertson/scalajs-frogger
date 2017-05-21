@@ -6,7 +6,7 @@ import dom.document
 import dom.window
 import org.scalajs.dom.html.Canvas
 import org.scalajs.dom.raw.HTMLImageElement
-import net.xylophones.frogger._
+import net.xylophones.frogger.{TiledLayer, _}
 
 import scala.collection.immutable
 import scala.scalajs.js.annotation.JSExportTopLevel
@@ -51,12 +51,26 @@ object FroggerApp extends JSApp {
     val homes = (0 to 4).map(HomeFactory.create)
     homes.foreach(h => h.draw(ctx))
 
-    var offset = 48
     val channels = ChannelFactory.channels(0)
-    channels.zipWithIndex.foreach{ case (c, i) =>
-        c.moveTo(0, (i * 32) + offset)
+    (0 until 5).foreach{ i =>
+      channels(i).moveTo(0, (i * 32) + 48)
     }
+
+    val borderTiles = Array((0 until 16).map(x => Tile(0, 0)).toArray)
+    val border = new TiledLayer(new TiledImage(new Image("img/tiles2.png"), 32, 32), 1, 16, borderTiles)
+    border.moveTo(0, 48 + 5 * 32)
+    border.draw(ctx)
+
+    (5 until 10).foreach{ i =>
+      channels(i).moveTo(0, (i * 32) + 48 + 32)
+    }
+
     channels.foreach(c => c.draw(ctx))
+
+    val border2 = new TiledLayer(new TiledImage(new Image("img/tiles2.png"), 32, 32), 1, 16, borderTiles)
+    border2.moveTo(0, 48 + 11 * 32)
+    border2.draw(ctx)
+
 
     //ctx.drawImage(frog.element, 48, 0, 16, 16, 0, 0, 16, 16)
   }
