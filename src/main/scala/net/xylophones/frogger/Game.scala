@@ -72,24 +72,47 @@ abstract class Layer(private var xPos: Int = 0,
   def draw(context: CanvasRenderingContext2D)
 }
 
-class TiledLayer(image: Image, val tileWidth: Int, /*rows: Int,*/ columns: Int, contents: Array[Int]) extends Layer {
+trait CellCoords {
+  def col: Int
+  def row: Int
+}
+
+class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
+
+class TiledLayer(protected val tileImage: TiledImage, rows: Int, columns: Int, contents: Array[Array[Int]]) extends Layer {
   val padding = 0
-  private val img = image.element
+  protected val img = tileImage.image.element
 
-  def setCell(column: Int, id: Int) = contents(column) = id
+  def setCell(row: Int, column: Int, id: Int) = contents(row)(column) = id
 
-  def getCell(column: Int) = contents(column)
+  def getCell(row: Int, column: Int) = contents(row)(column)
 
-  def getCellRectangles(): Seq[Rectangular] = contents.indices.map {
-    i => new Rectangle(x+(i*tileWidth), y, tileWidth, img.height)
+  def rectangles(): Seq[Rectangle with CellCoords] = for {
+    r <- 0 until rows
+    c <- 0 until columns
+    rX = x + (r * tileImage.tileWidth)
+    rY = y + (c * tileImage.tileHeight)
+  } yield new Rectangle(rX, rY, tileImage.tileWidth, tileImage.tileHeight) with CellCoords {
+    val col = c
+    val row = r
   }
 
   override def draw(context: CanvasRenderingContext2D) = {
     for (column <- 0 until columns) {
-      val index = contents(column)
-      val imgXOffset = index * tileWidth
-      val canvasOffsetX = x + (tileWidth * column)
-      context.drawImage(img, imgXOffset, 0, tileWidth, img.height, canvasOffsetX, y, tileWidth, img.height)
+      for (row <- 0 until rows) {
+        val tileId = contents(row)(column)
+
+        val tileCol = tileId % columns
+        val tileRow = tileId / columns
+
+        val imgXOffset = tileCol * tileImage.tileWidth
+        val imgYOffset = tileRow * tileImage.tileHeight
+
+        val canvasOffsetX = x + (tileImage.tileWidth * column)
+        val canvasOffsetY = y + (tileImage.tileHeight * row)
+
+        context.drawImage(img, imgXOffset, imgYOffset, tileImage.tileWidth, tileImage.tileHeight, canvasOffsetX, canvasOffsetY, tileImage.tileWidth, tileImage.tileHeight)
+      }
     }
   }
 }
@@ -109,5 +132,5 @@ class Sprite(image: Image, frameWidth: Int) extends Layer {
 
   def apply(image: Image) = new Sprite(image, img.width)
 
-  def midPoint() = (x + frameWidth/2, y + img.height/2)
+  def midPoint() = (x + frameWidth / 2, y + img.height / 2)
 }

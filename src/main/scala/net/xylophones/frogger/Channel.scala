@@ -1,19 +1,115 @@
 package net.xylophones.frogger
 
-class Channel(contents: Array[Int], velocity: Int) extends TiledLayer(new Image("img/tiles.png"), 16, 16, contents) {
+object ChannelFactory {
+
+  def channels(level: Int) /*: Array[Channel]*/ = {
+    levels(level).split("\n")
+      .map(_.trim)
+      .filterNot(_.length == 0)
+      .map { c => c.split("\t") }
+      .map { x => (x(0).toInt, x(1).split("").map(cell)) }
+      .map { case (velocity, cells) => new Channel(cells, velocity) }
+  }
+
+  private val cell = Map(
+    "~" -> Cell.River,
+    "(" -> Cell.LogLeft,
+    ")" -> Cell.LogRight,
+    "=" -> Cell.LogMiddle,
+    "@" -> Cell.Turtle,
+    "." -> Cell.Road,
+    "[" -> Cell.LorryLeft,
+    "]" -> Cell.LorryRight,
+    "{" -> Cell.Car1,
+    ">" -> Cell.Car3,
+    "<" -> Cell.Car2,
+    "}" -> Cell.Tractor,
+    "-" -> Cell.AlligatorTail,
+    "+" -> Cell.AlligatorMiddle,
+    "*" -> Cell.AlligatorHead,
+    "#" -> Cell.AlligatorOpen
+  )
+
+  private val levels = List(
+    """
+      |1	~~~~~(==)~~(==)~~(==)~~
+      |-3	~@@@~@@@~@@@~@@@~~~~~~~~~~~~
+      |2	(===)~~(===)~~(===)~~
+      |3	~~~~~~(=)~~(=)~~(=)~~
+      |-3	~@@@~@@@~@@@~@@@~@@@~@@@~~~~~~
+      |-1	...[]...[]...[]...
+      |1	...............>
+      |-2	...{...{...{......
+      |2	..........}...}...}
+      |-1	<...<...<.........
+    """.stripMargin,
+    """
+      |1	~~~~~-+*~~~(=)~~~(==)~~
+      |-3	~@@~~@@@~@@@~@@~~~~~~~~~~~~~
+      |3	(==)~~~(===)~~~~(==)~~
+      |3	~~~~~~(=)~~(=)~~(=)~~~~
+      |-3	~~@@~@@~~@@@~@@@~~@@~@@@~~~~~~
+      |-1	...[]...[]...[]...
+      |7	...>.>..........
+      |-2	...{...{...{......
+      |1	...}......}...}...}
+      |-1	<...<...<...<.....
+    """.stripMargin,
+    """
+      |2	~~~~~-+#~~~(=)~~~(==)~~
+      |-4	~@@~~@@@~@@~~@@~~~~~~~~~~~~~
+      |3	(=)~~~~(===)~~~~(==)~~
+      |4	~~~~~~()~~~(=)~~(=)~~~~
+      |-4	~~@@~@@~~~@@~@@@~~@@~@@@~~~~~~
+      |-1	...[]...[]...[]...
+      |2	..>>.>.........>
+      |-3	...{...{...{.....{
+      |1	...}..}...}...}...}
+      |-2	<...<...<...<...<.
+    """.stripMargin,
+    """
+      |3	~~~~~-+#~~~(=)~~~(==)~~
+      |-4	@~~~~@@~~@@~~@@~~~~~~@
+      |3	-+*~~~~(===)~~~~(==)~~
+      |5	~~~~~~()~~~()~~~(=)~~~~
+      |-4	~~~@~@@~~~@@~@@@~~@@~~@~~~
+      |-3	...[]...[]...[].[]
+      |7	...>.>.......>..
+      |-4	...{...{...{.....{
+      |4	}..}.}..........
+      |-2	<..<..<.<...<...<.
+    """.stripMargin,
+    """
+      |4	~~~~~-+#~~~-+#~~~(=)~~
+      |-5	@~~~~~~@@~~@@~~@@~~~~~~@
+      |4	-+#~~~~(=)~~~~-+#~~
+      |7	~~~~~~()~~~()~~~-+#~~~~
+      |-5	~~~@~@@~~~@@~@@~~~@@~~@~~~~~
+      |-4	..[]..[]...[].[]..[]
+      |3	...>.>....>..>..
+      |-5	...{...{.{.{.....{
+      |3	}..}.}......}...
+      |-3	<.<..<.<...<..<.<..<.
+    """.stripMargin)
+}
+
+class Channel(tiles: Array[Cell.CellVal], velocity: Int)
+  extends TiledLayer(
+    new TiledImage(new Image("img/tiles.png"), 16, 16), 1, 16, Array(tiles.map(_.id))) {
 
   private var currentOffset = 0
-  private val scrollBoundary = -tileWidth
 
-  def update = {
+  private val scrollBoundary = -tileImage.tileWidth
+
+  def update() = {
     moveBy(velocity, 0)
 
     val offsetPixels =
-      if (velocity > 0 && (x + tileWidth) < scrollBoundary) scrollBoundary - tileWidth - x
+      if (velocity > 0 && (x + tileImage.tileWidth) < scrollBoundary) scrollBoundary - tileImage.tileWidth - x
       else if (velocity < 0 && x > scrollBoundary) scrollBoundary - x
       else 0
 
-    val offsetCells = offsetPixels / tileWidth
+    val offsetCells = offsetPixels / tileImage.tileWidth
     if (offsetCells != 0) {
       moveByCells(offsetCells)
       shuntCells(offsetCells)
@@ -21,53 +117,58 @@ class Channel(contents: Array[Int], velocity: Int) extends TiledLayer(new Image(
   }
 
   def isDeadlyCollision(sprite: Sprite) =
-    spriteCell(sprite, CellType.Deadly, (s: Sprite,r: Rectangular) => r.intersects(sprite))
+    spriteCell(sprite, CellType.Deadly, (s: Sprite, r: Rectangular) => r.intersects(sprite))
 
   def isLanding(sprite: Sprite) =
-    spriteCell(sprite, CellType.Moving, (s: Sprite,r: Rectangular) => r.contains(sprite.midPoint()))
+    spriteCell(sprite, CellType.Moving, (s: Sprite, r: Rectangular) => r.contains(sprite.midPoint()))
 
-  private def spriteCell(sprite: Sprite, t: CellType.CellTypeVal, relationship: (Sprite, Rectangular) => Boolean)
-    = getCellRectangles().zipWithIndex.map {
-    case (r, i) if relationship(sprite, r) => contents(i)
-  }.flatMap(Cell.fromIndex).map(_.cellType).contains(t)
+  private def spriteCell(sprite: Sprite, t: CellType.CellTypeVal, relationship: (Sprite, Rectangular) => Boolean) =
+    rectangles()
+      .filter(r => relationship(sprite, r))
+      .map(r => tiles(r.col))
+      .map(_.cellType)
+      .contains(t)
 
   private def shuntCells(offset: Int): Unit = {
-    currentOffset = (currentOffset + offset + contents.length) % contents.length
-    for (i <- 0 to contents.length) {
-      val index = (i + currentOffset) % contents.length
-      setCell(i, contents(index))
+    currentOffset = (currentOffset + offset + tiles.length) % tiles.length
+    for (col <- 0 to tiles.length) {
+      val index = (col + currentOffset) % tiles.length
+      setCell(0, col, tiles(index).id)
+      tiles(col) = tiles(index)
     }
   }
 
-  private def moveByCells(numCells: Int) = moveBy(numCells * tileWidth, 0)
+  private def moveByCells(numCells: Int) = moveBy(numCells * tileImage.tileWidth, 0)
 }
 
 object CellType extends Enumeration {
-  case class CellTypeVal() extends super.Val(0)
+  case class CellTypeVal() extends super.Val()
+
   val Moving, Deadly, Safe = CellTypeVal()
 }
 
 object Cell extends Enumeration {
+
   case class CellVal(override val id: Int, cellType: CellType.CellTypeVal) extends super.Val(id)
 
-  val Empty = CellVal(0, CellType.Safe)
-  val Border = CellVal(1, CellType.Safe)
-  val River = CellVal(2, CellType.Deadly)
-  val Road = CellVal(3, CellType.Safe)
-  val Car1 = CellVal(4, CellType.Deadly)
-  val Car2 = CellVal(5, CellType.Deadly)
-  val Car3 = CellVal(6, CellType.Deadly)
-  val LogLeft = CellVal(7, CellType.Moving)
-  val LogMiddle = CellVal(8, CellType.Moving)
-  val LogRight = CellVal(9, CellType.Moving)
-  val LorryLeft = CellVal(10, CellType.Deadly)
-  val LorryRight = CellVal(11, CellType.Deadly)
-  val Tractor = CellVal(12, CellType.Deadly)
-  val Turtle = CellVal(13, CellType.Moving)
-  val AlligatorTail = CellVal(14, CellType.Moving)
-  val AlligatorMiddle = CellVal(15, CellType.Moving)
-  val AlligatorHead = CellVal(16, CellType.Moving)
-  val AlligatorOpen = CellVal(17, CellType.Deadly)
+  //val Empty = CellVal(0, CellType.Safe)
+  val Border = CellVal(0, CellType.Safe)
+  val River = CellVal(1, CellType.Deadly)
+  val Road = CellVal(2, CellType.Safe)
+  val Car1 = CellVal(3, CellType.Deadly)
+  val Car2 = CellVal(4, CellType.Deadly)
+  val Car3 = CellVal(5, CellType.Deadly)
+  val LogLeft = CellVal(6, CellType.Moving)
+  val LogMiddle = CellVal(7, CellType.Moving)
+  val LogRight = CellVal(8, CellType.Moving)
+  val LorryLeft = CellVal(9, CellType.Deadly)
+  val LorryRight = CellVal(10, CellType.Deadly)
+  val Tractor = CellVal(11, CellType.Deadly)
+  val Turtle = CellVal(12, CellType.Moving)
+  val AlligatorTail = CellVal(13, CellType.Moving)
+  val AlligatorMiddle = CellVal(14, CellType.Moving)
+  val AlligatorHead = CellVal(15, CellType.Moving)
+  val AlligatorOpen = CellVal(16, CellType.Deadly)
 
   def fromIndex(index: Int): Option[Cell.CellVal] = values.find(v => v.id == index).map(_.asInstanceOf[Cell.CellVal])
 }

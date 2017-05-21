@@ -35,8 +35,11 @@ object FroggerApp extends JSApp {
   @JSExportTopLevel("addClickedMessage")
   def addClickedMessage(): Unit = {
 
-    val tile = new TiledLayer(frog, 16, 16, Array(0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0))
-    tile.draw(ctx)
+    //val tile = new TiledLayer(new TiledImage(frog, 16, 16), 1, 16, Array(Array(0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0, 3, 5, 7, 1, 0)))
+    //tile.draw(ctx)
+
+    val channels = ChannelFactory.channels(0)
+    channels(0).draw(ctx)
 
     /*
     val sprite = new Sprite(frog, 16)
