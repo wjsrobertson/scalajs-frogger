@@ -17,7 +17,7 @@ trait Rectangular {
 
   def height: Int
 
-  def padding: Int
+  def padding: Int = 0
 
   def centre: (Int, Int) = (x + width / 2, y + height / 2)
 
@@ -48,7 +48,7 @@ class Rectangle(val x: Int,
                 val y: Int,
                 val width: Int,
                 val height: Int,
-                val padding: Int = 0) extends Rectangular
+                override val padding: Int = 0) extends Rectangular
 
 abstract class Layer(private var xPos: Int = 0,
                      private var yPos: Int = 0,
@@ -83,7 +83,7 @@ case class Tile(col: Int, row: Int, id: Int = 0)
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
 class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, protected val columns: Int, contents: Array[Array[Tile]]) extends Layer {
-  val padding = 0
+  override val padding = 0
   protected val img = tileImage.image.element
 
   def setCell(row: Int, column: Int, id: Tile) = contents(row)(column) = id
@@ -120,8 +120,51 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
   }
 }
 
+abstract class CompositeLayer(children: Seq[Layer]) extends Layer {
+  override def draw(context: CanvasRenderingContext2D) = children.foreach(_.draw(context))
+
+  override def moveBy(dx: Int, dy: Int) = children.foreach(_.moveBy(dx, dy))
+}
+
+class HorizontalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
+  private val cumulativeWidths = children.map(_.width).foldRight(Seq[Int]()){ (w: Int, acc: Seq[Int]) => w +: acc  }
+
+  override def moveTo(x: Int, y: Int) = {
+    val offsets = (0 +: cumulativeWidths).map(_ + x)
+    children zip offsets foreach {
+      case (c, o) => c.moveTo(o, y)
+    }
+  }
+
+  override val width = children.map(_.width).sum
+
+  override val height = children.head.height
+}
+
+class VerticalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
+  private val cumulativeHeights = children.map(_.height).foldRight(Seq[Int]()){ (h: Int, acc: Seq[Int]) => h +: acc  }
+
+  override def moveTo(x: Int, y: Int) = {
+    val offsets = (0 +: cumulativeHeights).map(_ + y)
+    children zip offsets foreach {
+      case (c, oy) => c.moveTo(x, oy)
+    }
+  }
+
+  override val width = children.head.width
+
+  override val height = children.map(_.height).sum
+}
+
+class BackgroundLayer(x: Int, y: Int, width: Int, height: Int, colour: Int) extends Layer(x,y,width, height) {
+  override def draw(context: CanvasRenderingContext2D) = {
+    // TODO - need to set paint stroke or something
+    context.fillRect(x, y, width ,height)
+  }
+}
+
 class Sprite(image: Image, frameWidth: Int) extends Layer {
-  val padding = Math.max(1, frameWidth / 4)
+  override val padding = Math.max(1, frameWidth / 4)
   private val img = image.element
   private val numFrames: Int = image.element.width / frameWidth
   private var frame = 0

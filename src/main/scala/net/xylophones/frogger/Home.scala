@@ -1,5 +1,6 @@
 package net.xylophones.frogger
 
+// TODO - can this be replaced with a companion object?
 object HomeFactory {
 
   val deadlyMask =
