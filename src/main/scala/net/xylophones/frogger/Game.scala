@@ -8,6 +8,8 @@ class Image(src: String) {
   element.src = src
 }
 
+case class Vector(x: Int, y: Int)
+
 trait Rectangular {
   def x: Int
 
@@ -86,6 +88,10 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
   override val padding = 0
   protected val img = tileImage.image.element
 
+  override val height = rows * tileImage.tileHeight
+
+  override val width = columns * tileImage.tileWidth
+
   def setCell(row: Int, column: Int, id: Tile) = contents(row)(column) = id
 
   def getCell(row: Int, column: Int) = contents(row)(column)
@@ -127,12 +133,15 @@ abstract class CompositeLayer(children: Seq[Layer]) extends Layer {
 }
 
 class HorizontalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
-  private val cumulativeWidths = children.map(_.width).foldRight(Seq[Int]()){ (w: Int, acc: Seq[Int]) => w +: acc  }
+  private val localOffsets = children.map(_.width).foldLeft(Seq(0)){
+    (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
+    .reverse
 
   override def moveTo(x: Int, y: Int) = {
-    val offsets = (0 +: cumulativeWidths).map(_ + x)
+    val offsets = localOffsets.map(_ + x)
+
     children zip offsets foreach {
-      case (c, o) => c.moveTo(o, y)
+      case (c, ox) => c.moveTo(ox, y)
     }
   }
 
@@ -142,10 +151,13 @@ class HorizontalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(chil
 }
 
 class VerticalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
-  private val cumulativeHeights = children.map(_.height).foldRight(Seq[Int]()){ (h: Int, acc: Seq[Int]) => h +: acc  }
+  private val localOffsets = children.map(_.height).foldLeft(Seq(0)){
+    (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
+    .reverse
 
   override def moveTo(x: Int, y: Int) = {
-    val offsets = (0 +: cumulativeHeights).map(_ + y)
+    val offsets = localOffsets.map(_ + y)
+
     children zip offsets foreach {
       case (c, oy) => c.moveTo(x, oy)
     }
@@ -156,9 +168,10 @@ class VerticalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(childr
   override val height = children.map(_.height).sum
 }
 
-class BackgroundLayer(x: Int, y: Int, width: Int, height: Int, colour: Int) extends Layer(x,y,width, height) {
+class BackgroundLayer(X: Int, Y: Int, override val width: Int, override val height: Int, colour: String) extends Layer(X,Y,width, height) {
   override def draw(context: CanvasRenderingContext2D) = {
-    // TODO - need to set paint stroke or something
+    context.fillStyle = colour
+    context.strokeStyle = colour
     context.fillRect(x, y, width ,height)
   }
 }

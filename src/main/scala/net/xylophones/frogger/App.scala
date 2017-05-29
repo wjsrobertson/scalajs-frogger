@@ -21,6 +21,7 @@ object App extends JSApp {
 
     canvas.width = (0.95 * dom.window.innerWidth).toInt
     canvas.height = (0.95 * dom.window.innerHeight).toInt
+    canvas.style.backgroundColor = "#FF0000"
     document.body.appendChild(canvas)
 
     val parNode = document.createElement("p")
@@ -44,6 +45,7 @@ object App extends JSApp {
     sprite.paint(ctx)
     */
 
+    /*
     val homes = (0 to 4).map(HomeFactory.create)
     homes.foreach(h => h.draw(ctx))
 
@@ -53,7 +55,7 @@ object App extends JSApp {
     }
 
     val borderTiles = Array((0 until 16).map(x => Tile(0, 0)).toArray)
-    val border = new TiledLayer(new TiledImage(new Image("img/tiles2.png"), 32, 32), 1, 16, borderTiles)
+    val border = new TiledLayer(new TiledImage(new Image("img/tiles.png"), 32, 32), 1, 16, borderTiles)
     border.moveTo(0, 48 + 5 * 32)
     border.draw(ctx)
 
@@ -63,10 +65,12 @@ object App extends JSApp {
 
     channels.foreach(c => c.draw(ctx))
 
-    val border2 = new TiledLayer(new TiledImage(new Image("img/tiles2.png"), 32, 32), 1, 16, borderTiles)
+    val border2 = new TiledLayer(new TiledImage(new Image("img/tiles.png"), 32, 32), 1, 16, borderTiles)
     border2.moveTo(0, 48 + 11 * 32)
     border2.draw(ctx)
+    */
 
+    GameModel.order.foreach(_.draw(ctx))
 
     //ctx.drawImage(frog.element, 48, 0, 16, 16, 0, 0, 16, 16)
   }
