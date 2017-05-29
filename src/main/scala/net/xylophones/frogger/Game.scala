@@ -75,8 +75,6 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
 
   override val width = columns * tileImage.tileWidth
 
-  def setCell(row: Int, column: Int, id: Tile) = contents(row)(column) = id
-
   def getCell(row: Int, column: Int) = contents(row)(column)
 
   /*

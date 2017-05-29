@@ -1,13 +1,18 @@
 package net.xylophones.frogger
 
-object ChannelFactory {
+class Channel(tiles: Array[Cell.CellVal], val velocity: Int)
+  extends TiledLayer(
+    new TiledImage(new Image("img/tiles.png"), 32, 32), 1, 16, Array(tiles.map(t => Tile(t.id, 0)))) {
+}
 
+object Channel {
   def channels(level: Int): Seq[Channel] = {
     levels(level).split("\n")
       .map(_.trim)
       .filterNot(_.length == 0)
       .map { c => c.split("\t") }
-      .map { x => (x(0).toInt, x(1).split("").map(cell)) }
+      .map ( x => (x(0).toInt, x(1)) )
+      .map { case (velocity, contents) => (velocity.toInt, (contents * 2).split("").map(cell)) }
       .map { case (velocity, cells) => new Channel(cells, velocity) }
   }
 
@@ -104,30 +109,18 @@ object ChannelFactory {
     """.stripMargin)
 }
 
-class Channel(tiles: Array[Cell.CellVal], velocity: Int)
-  extends TiledLayer(
-    new TiledImage(new Image("img/tiles.png"), 32, 32), 1, 16, Array(tiles.map(t => Tile(t.id, 0)))) {
+object ChannelShunter {
 
-  private var currentOffset = 0
+  def shunt(channel: Channel, position: Vector): Vector = {
+    import channel._
+    import position._
 
-  private val scrollBoundary = -tileImage.tileWidth
+    val mid = x + width/2
 
-  /*
-  def update() = {
-    moveBy(velocity, 0)
-
-    val offsetPixels =
-      if (velocity > 0 && (x + tileImage.tileWidth) < scrollBoundary) scrollBoundary - tileImage.tileWidth - x
-      else if (velocity < 0 && x > scrollBoundary) scrollBoundary - x
-      else 0
-
-    val offsetCells = offsetPixels / tileImage.tileWidth
-    if (offsetCells != 0) {
-      moveByCells(offsetCells)
-      shuntCells(offsetCells)
-    }
+    if (velocity > 0 && mid > 0) Vector(x - width/2, y)
+    else if (velocity < 0 && mid < 0) Vector(x + width/2, y)
+    else position
   }
-  */
 
   /*
   def isDeadlyCollision(sprite: Sprite) =
@@ -142,17 +135,6 @@ class Channel(tiles: Array[Cell.CellVal], velocity: Int)
       .map(r => tiles(r.col))
       .map(_.cellType)
       .contains(t)
-
-  private def shuntCells(offset: Int): Unit = {
-    currentOffset = (currentOffset + offset + tiles.length) % tiles.length
-    for (col <- 0 to tiles.length) {
-      val index = (col + currentOffset) % tiles.length
-      setCell(0, col, Tile(tiles(index).id, 0)) // TODO - clean up
-      tiles(col) = tiles(index)
-    }
-  }
-
-  private def moveByCells(numCells: Int) = moveBy(numCells * tileImage.tileWidth, 0)
   */
 }
 
