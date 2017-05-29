@@ -1,20 +1,12 @@
 package net.xylophones.frogger
 import org.scalajs.dom.CanvasRenderingContext2D
 
-object ScoreLayer extends Layer {
-  override def draw(context: CanvasRenderingContext2D): Unit = ???
-}
-
-object TimeLayer extends Layer {
-  override def draw(context: CanvasRenderingContext2D): Unit = ???
-}
-
 class Model(score: Int = 0 ,
             lives: Int = 0 ,
             frogState: Int = 0,
             level: Int = 0,
             timer: Int = 0)
-`
+
 object GameModel {
 
   // TODO - use local coords and global coords for layers
@@ -24,24 +16,22 @@ object GameModel {
 
   val darkBlue = "#00002A"
   val black = "#000000"
+  val green = "#00FF00"
 
-  val scoreTitle: Layer = new BackgroundLayer(0, 0, 32 * 16, 32, darkBlue)
-  val scoreLayer = new BackgroundLayer(0, 0, 32 * 16, 32, darkBlue)
-  val scoreSpace: Layer = new BackgroundLayer(0, 0, 32 * 16, 32, darkBlue)
+  val scoreTitle: Layer = new BackgroundLayer(32 * 16, 32, darkBlue)
+  val scoreLayer = new BackgroundLayer(32 * 16, 32, darkBlue)
+  val scoreSpace: Layer = new BackgroundLayer(32 * 16, 32, darkBlue)
   val homes = (0 to 5).map(HomeFactory.create(_))
-  val home = new HorizontalCompositeLayer(homes)
-  val channels = new VerticalCompositeLayer(ChannelFactory.channels(1))
-  val lifeLayer: Layer = new BackgroundLayer(0, 0, 32 * 16, 16, black)
-  val timeLayer = new BackgroundLayer(0, 0, 32 * 16, 32, black)
+  val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)
+  private val channels = ChannelFactory.channels(1)
+  val lifeLayer: Layer = new BackgroundLayer(32 * 16, 16, black)
+  val timeLayer = new BackgroundLayer(32 * 16, 32, black)
 
   // postition elements in correct order
-  val order = Seq(scoreTitle, scoreLayer, scoreSpace, home, channels , lifeLayer , timeLayer)
-  val heights = order.map(_.height)
-  val yOffsets = heights
-    .foldLeft(Seq[Int](0)){ (acc: Seq[Int], h: Int) => (h + acc.head) +: acc }
-    .reverse
+  val vertical = Seq(scoreTitle, scoreLayer, scoreSpace, homePlaceholder) ++ channels ++ Seq( lifeLayer , timeLayer)
 
-  (order zip yOffsets) foreach { case (l: Layer, y: Int) =>
-    l.moveTo(0, y)
-  }
+  val layers = vertical ++ homes
+  val vPositions = VerticalCompositeLayout.layout(Vector(0, 0), vertical)
+  val positions = vPositions ++ HorizontalCompositeLayout.layout(vPositions(3), homes)
+
 }

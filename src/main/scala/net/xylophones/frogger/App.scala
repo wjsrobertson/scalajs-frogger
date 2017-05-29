@@ -70,7 +70,7 @@ object App extends JSApp {
     border2.draw(ctx)
     */
 
-    GameModel.order.foreach(_.draw(ctx))
+    (GameModel.layers zip GameModel.positions).foreach{ case (l, p) => l.draw(ctx, p)}
 
     //ctx.drawImage(frog.element, 48, 0, 16, 16, 0, 0, 16, 16)
   }

@@ -2,7 +2,7 @@ package net.xylophones.frogger
 
 object ChannelFactory {
 
-  def channels(level: Int): Array[Channel] = {
+  def channels(level: Int): Seq[Channel] = {
     levels(level).split("\n")
       .map(_.trim)
       .filterNot(_.length == 0)
@@ -31,7 +31,7 @@ object ChannelFactory {
     "#" -> Cell.AlligatorOpen
   )
 
-  private val levels = List(
+  private val levels = Seq(
     """
       |1	~~~~~(==)~~(==)~~(==)~~
       |-3	~@@@~@@@~@@@~@@@~~~~~~~~~~~~
@@ -112,6 +112,7 @@ class Channel(tiles: Array[Cell.CellVal], velocity: Int)
 
   private val scrollBoundary = -tileImage.tileWidth
 
+  /*
   def update() = {
     moveBy(velocity, 0)
 
@@ -126,7 +127,9 @@ class Channel(tiles: Array[Cell.CellVal], velocity: Int)
       shuntCells(offsetCells)
     }
   }
+  */
 
+  /*
   def isDeadlyCollision(sprite: Sprite) =
     spriteCell(sprite, CellType.Deadly, (s: Sprite, r: Rectangular) => r.intersects(sprite))
 
@@ -150,6 +153,7 @@ class Channel(tiles: Array[Cell.CellVal], velocity: Int)
   }
 
   private def moveByCells(numCells: Int) = moveBy(numCells * tileImage.tileWidth, 0)
+  */
 }
 
 object CellType extends Enumeration {

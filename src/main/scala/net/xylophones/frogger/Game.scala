@@ -52,26 +52,10 @@ class Rectangle(val x: Int,
                 val height: Int,
                 override val padding: Int = 0) extends Rectangular
 
-abstract class Layer(private var xPos: Int = 0,
-                     private var yPos: Int = 0,
-                     val width: Int = 0,
-                     val height: Int = 0) extends Rectangular {
+abstract class Layer(val width: Int = 0,
+                     val height: Int = 0)  {
 
-  def x = xPos
-
-  def y = yPos
-
-  def moveTo(x: Int, y: Int) = {
-    this.xPos = x
-    this.yPos = y
-  }
-
-  def moveBy(dx: Int, dy: Int) = {
-    xPos += dx
-    yPos += dy
-  }
-
-  def draw(context: CanvasRenderingContext2D)
+  def draw(context: CanvasRenderingContext2D, offset: Vector)
 }
 
 trait CellCoords {
@@ -85,7 +69,6 @@ case class Tile(col: Int, row: Int, id: Int = 0)
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
 class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, protected val columns: Int, contents: Array[Array[Tile]]) extends Layer {
-  override val padding = 0
   protected val img = tileImage.image.element
 
   override val height = rows * tileImage.tileHeight
@@ -96,6 +79,7 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
 
   def getCell(row: Int, column: Int) = contents(row)(column)
 
+  /*
   def rectangles(): Seq[Rectangle with CellCoords] = for {
     r <- 0 until rows
     c <- 0 until columns
@@ -105,8 +89,9 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
     val col = c
     val row = r
   }
+  */
 
-  override def draw(context: CanvasRenderingContext2D) = {
+  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
     for (row <- 0 until rows) {
       for (column <- 0 until columns) {
         val tile = contents(row)(column)
@@ -117,8 +102,8 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
         val imgXOffset = tileCol * tileImage.tileWidth
         val imgYOffset = tileRow * tileImage.tileHeight
 
-        val canvasOffsetX = x + (tileImage.tileWidth * column)
-        val canvasOffsetY = y + (tileImage.tileHeight * row)
+        val canvasOffsetX = position.x + (tileImage.tileWidth * column)
+        val canvasOffsetY = position.y + (tileImage.tileHeight * row)
 
         context.drawImage(img, imgXOffset, imgYOffset, tileImage.tileWidth, tileImage.tileHeight, canvasOffsetX, canvasOffsetY, tileImage.tileWidth, tileImage.tileHeight)
       }
@@ -126,70 +111,58 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, p
   }
 }
 
-abstract class CompositeLayer(children: Seq[Layer]) extends Layer {
-  override def draw(context: CanvasRenderingContext2D) = children.foreach(_.draw(context))
+object HorizontalCompositeLayout  {
+  def layout(position: Vector, children: Seq[Layer]): Seq[Vector] = {
+    val localOffsets = children.map(_.width).foldLeft(Seq(0)){
+      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
+      .reverse
+      .dropRight(1)
 
-  override def moveBy(dx: Int, dy: Int) = children.foreach(_.moveBy(dx, dy))
-}
+    val offsets = localOffsets.map(_ + position.x)
 
-class HorizontalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
-  private val localOffsets = children.map(_.width).foldLeft(Seq(0)){
-    (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
-    .reverse
-
-  override def moveTo(x: Int, y: Int) = {
-    val offsets = localOffsets.map(_ + x)
-
-    children zip offsets foreach {
-      case (c, ox) => c.moveTo(ox, y)
+    children zip offsets map {
+      case (c, ox) => Vector(ox, position.y)
     }
   }
-
-  override val width = children.map(_.width).sum
-
-  override val height = children.head.height
 }
 
-class VerticalCompositeLayer(children: Seq[Layer]) extends CompositeLayer(children) {
-  private val localOffsets = children.map(_.height).foldLeft(Seq(0)){
-    (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
-    .reverse
+object VerticalCompositeLayout {
+  def layout(position: Vector, children: Seq[Layer]): Seq[Vector] = {
+    val localOffsets = children.map(_.height).foldLeft(Seq(0)) {
+      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc}
+      .reverse
+      .dropRight(1)
 
-  override def moveTo(x: Int, y: Int) = {
-    val offsets = localOffsets.map(_ + y)
+    val offsets = localOffsets.map(_ + position.y)
 
-    children zip offsets foreach {
-      case (c, oy) => c.moveTo(x, oy)
+    children zip offsets map {
+      case (c, oy) => Vector(position.x, oy)
     }
   }
-
-  override val width = children.head.width
-
-  override val height = children.map(_.height).sum
 }
 
-class BackgroundLayer(X: Int, Y: Int, override val width: Int, override val height: Int, colour: String) extends Layer(X,Y,width, height) {
-  override def draw(context: CanvasRenderingContext2D) = {
+class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h) {
+  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
     context.fillStyle = colour
     context.strokeStyle = colour
-    context.fillRect(x, y, width ,height)
+    context.fillRect(position.x, position.y, width ,height)
   }
 }
 
 class Sprite(image: Image, frameWidth: Int) extends Layer {
-  override val padding = Math.max(1, frameWidth / 4)
+  val padding = Math.max(1, frameWidth / 4)
   private val img = image.element
   private val numFrames: Int = image.element.width / frameWidth
   private var frame = 0
 
-  override def draw(context: CanvasRenderingContext2D) = {
+  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
     val imgXOffset = frame * frameWidth
-    context.drawImage(img, imgXOffset, 0, frameWidth, img.height, x, y, frameWidth, img.height)
+    context.drawImage(img, imgXOffset, 0, frameWidth, img.height, position.x, position.y, frameWidth, img.height)
   }
 
   def setFrame(frame: Int) = this.frame = frame % numFrames
 
   def apply(image: Image) = new Sprite(image, img.width)
 
-  def midPoint() = (x + frameWidth / 2, y + img.height / 2)
+  //def midPoint() = (x + frameWidth / 2, y + img.height / 2)
 }
