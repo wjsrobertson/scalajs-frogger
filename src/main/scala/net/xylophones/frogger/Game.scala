@@ -9,7 +9,9 @@ class Image(src: String) {
 }
 
 case class Vector(x: Int, y: Int) {
-  def add(X: Int, Y: Int) = Vector(X +x, Y + y)
+  def add(X: Int, Y: Int): Vector = Vector(X + x, Y + y)
+  def add(v: Vector): Vector = add(v.x, v.y)
+  def scale(s: Int) = Vector(s * x, s * y)
 }
 
 trait Rectangular {
@@ -55,7 +57,7 @@ class Rectangle(val x: Int,
                 override val padding: Int = 0) extends Rectangular
 
 abstract class Layer(val width: Int = 0,
-                     val height: Int = 0)  {
+                     val height: Int = 0) {
 
   def draw(context: CanvasRenderingContext2D, offset: Vector)
 }
@@ -70,7 +72,7 @@ case class Tile(col: Int, row: Int, id: Int = 0)
 
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
-class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int,  val columns: Int, contents: Array[Array[Tile]]) extends Layer {
+class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, val columns: Int, contents: Array[Array[Tile]]) extends Layer {
   protected val img = tileImage.image.element
 
   override val height = rows * tileImage.tileHeight
@@ -111,10 +113,11 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int,  
   }
 }
 
-object HorizontalCompositeLayout  {
+object HorizontalCompositeLayout {
   def layout(position: Vector, children: Seq[Layer]): Seq[Vector] = {
-    val localOffsets = children.map(_.width).foldLeft(Seq(0)){
-      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc }
+    val localOffsets = children.map(_.width).foldLeft(Seq(0)) {
+      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc
+    }
       .reverse
       .dropRight(1)
 
@@ -129,7 +132,8 @@ object HorizontalCompositeLayout  {
 object VerticalCompositeLayout {
   def layout(position: Vector, children: Seq[Layer]): Seq[Vector] = {
     val localOffsets = children.map(_.height).foldLeft(Seq(0)) {
-      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc}
+      (acc: Seq[Int], h: Int) => (acc.head + h) +: acc
+    }
       .reverse
       .dropRight(1)
 
@@ -145,7 +149,7 @@ class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h
   override def draw(context: CanvasRenderingContext2D, position: Vector) = {
     context.fillStyle = colour
     context.strokeStyle = colour
-    context.fillRect(position.x, position.y, width ,height)
+    context.fillRect(position.x, position.y, width, height)
   }
 }
 
@@ -159,7 +163,7 @@ class Sprite(image: Image, frameWidth: Int) {
     context.drawImage(img, imgXOffset, 0, frameWidth, img.height, position.x, position.y, frameWidth, img.height)
   }
 
-  def midPoint(position: Vector): Vector = Vector(position.x + (width/2) + 1, position.y + (height/2) + 1)
+  def midPoint(position: Vector): Vector = Vector(position.x + (width / 2) + 1, position.y + (height / 2) + 1)
 
   def width = frameWidth
 

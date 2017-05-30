@@ -1,15 +1,15 @@
 package net.xylophones.frogger
 
 object FrogFacing {
-  class Direction(val frame: Int)
+  class Direction(val frame: Int, val vector: Vector)
 
-  case object Up extends Direction(0)
+  case object Up extends Direction(0, Vector(0, -1))
 
-  case object Down extends Direction(1)
+  case object Down extends Direction(1, Vector(0, 1))
 
-  case object Left extends Direction(2)
+  case object Left extends Direction(2, Vector(-1, 0))
 
-  case object Right extends Direction(3)
+  case object Right extends Direction(3, Vector(1, 0))
 }
 
 case class Model(score: Int = 0,
