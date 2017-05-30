@@ -45,7 +45,7 @@ object App extends JSApp {
   }
 
   def addCanvas(): Unit = {
-    canvas.width = (0.95 * dom.window.innerWidth).toInt
+    canvas.width = 512
     canvas.height = (0.95 * dom.window.innerHeight).toInt
     canvas.style.backgroundColor = "#FF0000"
     document.body.appendChild(canvas)

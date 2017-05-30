@@ -68,7 +68,7 @@ case class Tile(col: Int, row: Int, id: Int = 0)
 
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
-class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, protected val columns: Int, contents: Array[Array[Tile]]) extends Layer {
+class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int,  val columns: Int, contents: Array[Array[Tile]]) extends Layer {
   protected val img = tileImage.image.element
 
   override val height = rows * tileImage.tileHeight

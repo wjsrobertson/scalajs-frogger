@@ -39,6 +39,8 @@ object GameModel {
 
   def allPositions(channelPositions: Seq[Vector]) = topPositions ++ channelPositions ++ bottomPositions ++ homesPositions
 
+  println(s"ch: ${channels(0).columns}")
+
   def initialModel() = {
     (layers, positions, new Model(positions = allPositions(channelPositions)))
   }

@@ -2,7 +2,7 @@ package net.xylophones.frogger
 
 class Channel(tiles: Array[Cell.CellVal], val velocity: Int)
   extends TiledLayer(
-    new TiledImage(new Image("img/tiles.png"), 32, 32), 1, 16, Array(tiles.map(t => Tile(t.id, 0)))) {
+    new TiledImage(new Image("img/tiles.png"), 32, 32), 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
 }
 
 object Channel {
@@ -28,7 +28,7 @@ object Channel {
 
     val mid = x + width/2
 
-    if (velocity > 0 && mid > 0) x - width/2
+    if (velocity > 0 && x > 0) x - width/2
     else if (velocity < 0 && mid < 0) x + width/2
     else x
   }
