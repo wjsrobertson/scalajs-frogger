@@ -8,7 +8,9 @@ class Image(src: String) {
   element.src = src
 }
 
-case class Vector(x: Int, y: Int)
+case class Vector(x: Int, y: Int) {
+  def add(X: Int, Y: Int) = Vector(X +x, Y + y)
+}
 
 trait Rectangular {
   def x: Int
@@ -147,20 +149,19 @@ class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h
   }
 }
 
-class Sprite(image: Image, frameWidth: Int) extends Layer {
+class Sprite(image: Image, frameWidth: Int) {
   val padding = Math.max(1, frameWidth / 4)
   private val img = image.element
   private val numFrames: Int = image.element.width / frameWidth
-  private var frame = 0
 
-  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
+  def draw(context: CanvasRenderingContext2D, position: Vector, frame: Int) = {
     val imgXOffset = frame * frameWidth
     context.drawImage(img, imgXOffset, 0, frameWidth, img.height, position.x, position.y, frameWidth, img.height)
   }
 
-  def setFrame(frame: Int) = this.frame = frame % numFrames
+  def midPoint(position: Vector): Vector = Vector(position.x + (width/2) + 1, position.y + (height/2) + 1)
 
-  def apply(image: Image) = new Sprite(image, img.width)
+  def width = frameWidth
 
-  //def midPoint() = (x + frameWidth / 2, y + img.height / 2)
+  def height = img.height
 }

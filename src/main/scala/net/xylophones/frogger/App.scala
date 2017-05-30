@@ -22,7 +22,7 @@ object App extends JSApp {
   def loop(lastTime: Long = System.currentTimeMillis, model: Model): Unit = {
     println("loop")
 
-    draw(model.positions)
+    draw(model)
 
     val interval: Long = System.currentTimeMillis() - lastTime
     val desiredPause = 1000 / 25
@@ -40,8 +40,10 @@ object App extends JSApp {
     }
   }
 
-  def draw(positions: Seq[Vector]) = {
-    (GameModel.layers zip positions).foreach{ case (l, p) => l.draw(ctx, p)}
+  def draw(model: Model) = {
+    (GameModel.layers zip model.positions).foreach{ case (l, p) => l.draw(ctx, p)}
+
+    GameModel.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
   }
 
   def addCanvas(): Unit = {
