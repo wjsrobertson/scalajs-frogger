@@ -24,5 +24,5 @@ object UserInput {
     keys -= e.keyCode
   }, false)
 
-  def direction(): Option[Direction.Dir] = keys.map(directionKeyCodes(_)).headOption
+  def direction(): Option[Direction.Dir] = keys.flatMap(directionKeyCodes.get(_)).headOption
 }

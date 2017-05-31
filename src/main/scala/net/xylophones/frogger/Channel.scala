@@ -16,24 +16,6 @@ object Channel {
       .map { case (velocity, cells) => new Channel(cells, velocity) }
   }
 
-  def update(channels: Seq[Channel], positions: Seq[Vector]): Seq[Vector] = {
-    channels zip positions map { case (c, p) =>
-      val x = shunt(c, p.x + c.velocity)
-      Vector(x, p.y)
-    }
-  }
-
-  private def shunt(channel: Channel, x: Int): Int = {
-    import channel._
-
-    val mid = x + width/2
-
-    if (velocity > 0 && x > 0) x - width/2
-    else if (velocity < 0 && mid < 0) x + width/2
-    else x
-  }
-
-
   private val cell = Map(
     "%" -> Cell.Border,
     "~" -> Cell.River,

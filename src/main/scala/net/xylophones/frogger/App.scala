@@ -31,34 +31,10 @@ object App extends JSApp {
     }
   }
 
-  private def updateModel(model: Model) = {
-    val channelPositions: Seq[Vector] = (model.layers.all zip model.positions)
-      .filter(_._1.isInstanceOf[Channel])
-      .map(_._2)
-    val cp = Channel.update(model.layers.channels, channelPositions)
-    val ap = Layers.allPositions(cp)
-
-    val userDirection = UserInput.direction()
-    val jumpDirection: Option[Direction.Dir] =
-      if (model.frogJumpTimer > 0) Some(model.frogFacing)
-      else if (userDirection.isDefined) userDirection
-      else None
-
-    // use local variable jumpdirection instead, derived from current model and user input
-    val (fp, ff, ft) = jumpDirection match {
-      case Some(d) =>
-        val scale = 8
-        val newFrogPosition = model.frogPosition.add(d.vector.scale(scale))
-        val newFrogDirection = d
-        val newFrogTimer = if (model.frogJumpTimer >= 1) model.frogJumpTimer -1 else 3
-
-        (newFrogPosition, newFrogDirection, newFrogTimer)
-      case _ => (model.frogPosition, model.frogFacing, model.frogJumpTimer)
+  private def updateModel(model: Model): Model = {
+    ModelUpdaters.updaters.foldLeft(model) {
+      (updatedModel: Model, updater: ModelUpdater) => updater.update(updatedModel)
     }
-
-    val newModel = model.copy(positions = ap, frogPosition = fp, frogFacing = ff, frogJumpTimer = ft)
-
-    newModel
   }
 
   def draw(model: Model) = {
@@ -70,7 +46,7 @@ object App extends JSApp {
   def addCanvas(): Unit = {
     canvas.width = 512
     canvas.height = (0.95 * dom.window.innerHeight).toInt
-    canvas.style.backgroundColor = "#FF0000"
+    //canvas.style.backgroundColor = "#FF0000"
     document.body.appendChild(canvas)
   }
 }
