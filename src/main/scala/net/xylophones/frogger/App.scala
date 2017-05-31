@@ -5,8 +5,6 @@ import org.scalajs.dom.document
 import org.scalajs.dom.html.Canvas
 
 import scala.scalajs.js.JSApp
-import scala.scalajs.js.annotation.JSExportTopLevel
-import scala.scalajs.js.Dynamic.global
 import scala.scalajs.js.timers._
 
 object App extends JSApp {
@@ -15,7 +13,7 @@ object App extends JSApp {
 
   def main(): Unit = {
     addCanvas()
-    val (_, _, m) = GameModel.initialModel()
+    val m = Layers.initialModel()
     loop(model = m)
   }
 
@@ -34,16 +32,16 @@ object App extends JSApp {
   }
 
   private def updateModel(model: Model) = {
-    val channelPositions: Seq[Vector] = (GameModel.layers zip model.positions)
+    val channelPositions: Seq[Vector] = (model.layers.all zip model.positions)
       .filter(_._1.isInstanceOf[Channel])
       .map(_._2)
-    val cp = Channel.update(GameModel.channels, channelPositions)
-    val ap = GameModel.allPositions(cp)
+    val cp = Channel.update(model.layers.channels, channelPositions)
+    val ap = Layers.allPositions(cp)
 
     val userDirection = UserInput.direction()
-    val jumpDirection: Option[FrogFacing.Direction] =
+    val jumpDirection: Option[Direction.Dir] =
       if (model.frogJumpTimer > 0) Some(model.frogFacing)
-      else if (userDirection.isDefined) userDirection.map(_.dir)
+      else if (userDirection.isDefined) userDirection
       else None
 
     // use local variable jumpdirection instead, derived from current model and user input
@@ -64,9 +62,9 @@ object App extends JSApp {
   }
 
   def draw(model: Model) = {
-    (GameModel.layers zip model.positions).foreach { case (l, p) => l.draw(ctx, p) }
+    (model.layers.all zip model.positions).foreach { case (l, p) => l.draw(ctx, p) }
 
-    GameModel.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
+    model.layers.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
   }
 
   def addCanvas(): Unit = {
