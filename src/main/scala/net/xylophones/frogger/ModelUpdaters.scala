@@ -19,10 +19,10 @@ trait ModelUpdater {
 }
 
 object ModelUpdaters {
-  val updaters = Seq(ChannelUpdater, FrogUpdater)
+  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer)
 }
 
-object FrogUpdater extends ModelUpdater {
+object FrogMoveUpdater extends ModelUpdater {
   def update(model: Model): Model = {
     val userDirection = UserInput.direction()
 
@@ -42,21 +42,46 @@ object FrogUpdater extends ModelUpdater {
       case _ => (model.frogPosition, model.frogFacing, model.frogJumpTimer)
     }
 
+    model.copy(frogPosition = fp, frogFacing = ff, frogJumpTimer = ft)
+  }
+}
+
+object FrogPositionConstrainer extends ModelUpdater {
+  def update(model: Model): Model = {
     import Config._
 
-    val yConstrained = fp match {
+    val yConstrained = model.frogPosition match {
       case v: Vector if v.x < 0 => Vector(0, v.y)
-      case v: Vector if v.x + frogWidth > gameWidth => Vector(gameWidth - frogWidth, fp.y)
-      case _ => fp
+      case v: Vector if v.x + frogWidth > gameWidth => Vector(gameWidth - frogWidth, v.y)
+      case _ => model.frogPosition
     }
 
     val xyConstrained = yConstrained match {
-      case v: Vector if (v.y + frogHeight) > frogMaxY => Vector(fp.x, frogMaxY - frogHeight)
-      case v: Vector if v.y < frogMinY => Vector(fp.x, frogMinY)
-      case _ => fp
+      case v: Vector if (v.y + frogHeight) > frogMaxY => Vector(v.x, frogMaxY - frogHeight)
+      case v: Vector if v.y < frogMinY => Vector(v.x, frogMinY)
+      case _ => yConstrained
     }
 
-    model.copy(frogPosition = xyConstrained, frogFacing = ff, frogJumpTimer = ft)
+    model.copy(frogPosition = xyConstrained)
+  }
+}
+
+object FrogChannelLander extends ModelUpdater {
+  def update(model: Model): Model = {
+    val channelPos: Seq[(Vector)] = (model.layers.all zip model.positions)
+      .filter(_._1.isInstanceOf[Channel])
+      .map(_._2)
+
+    val landingChannel = (model.layers.channels zip channelPos)
+      .find(x => ChannelCollisionChecker.isLanding(x._1, x._2, model.layers.frog, model.frogPosition))
+      .map(_._1)
+
+   // println(landingChannel)
+
+    landingChannel.map(ch => ch.velocity)
+      .map(vel => model.frogPosition.add(vel, model.frogPosition.y))
+      .map(fp => model.copy(frogPosition = fp))
+      .getOrElse(model)
   }
 }
 
@@ -82,10 +107,10 @@ object ChannelUpdater extends ModelUpdater {
   private def shunt(channel: Channel, x: Int): Int = {
     import channel._
 
-    val mid = x + width/2
+    val mid = x + width / 2
 
-    if (velocity > 0 && x > 0) x - width/2
-    else if (velocity < 0 && mid < 0) x + width/2
+    if (velocity > 0 && x > 0) x - width / 2
+    else if (velocity < 0 && mid < 0) x + width / 2
     else x
   }
 }

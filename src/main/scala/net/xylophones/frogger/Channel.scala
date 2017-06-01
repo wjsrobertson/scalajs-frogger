@@ -1,6 +1,6 @@
 package net.xylophones.frogger
 
-class Channel(tiles: Array[Cell.CellVal], val velocity: Int)
+class Channel(val tiles: Array[Cell.CellVal], val velocity: Int)
   extends TiledLayer(
     new TiledImage(new Image("img/tiles.png"), 32, 32), 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
 }
@@ -109,20 +109,30 @@ object Channel {
     """.stripMargin)
 }
 
-object ChannelShunter {
+object ChannelCollisionChecker {
 
+  def isDeadlyCollision(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
+    channel.rectangles
+      .filter(r => r.intersects(chPosition, sprite, sPosition))
+      .map(r => channel.tiles(r.col))
+      .map(_.cellType)
+      .contains(CellType.Deadly)
+  }
+  //  spriteCell(channel, sprite, CellType.Deadly, (s: Sprite, r: Rectangular) => r.intersects(chPosition, sprite, sPosition))
 
-  /*
-  def isDeadlyCollision(sprite: Sprite) =
-    spriteCell(sprite, CellType.Deadly, (s: Sprite, r: Rectangular) => r.intersects(sprite))
-
-  def isLanding(sprite: Sprite) =
-    spriteCell(sprite, CellType.Moving, (s: Sprite, r: Rectangular) => r.contains(sprite.midPoint()))
-
-  private def spriteCell(sprite: Sprite, t: CellType.CellTypeVal, relationship: (Sprite, Rectangular) => Boolean) =
-    rectangles()
+  def isLanding(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
+    channel.rectangles
+      .filter(r => r.contains(chPosition, sprite.midPoint, sPosition))
+      .map(r => channel.tiles(r.col))
+      .map(_.cellType)
+      .contains(CellType.Moving)
+  }
+  //    spriteCell(channel, sprite, CellType.Moving, (s: Sprite, r: Rectangular) => r.contains(chPosition, sprite.midPoint, sPosition))
+/*
+  private def spriteCell(channel: Channel, chPos:Vector, sprite: Sprite, sPos: Vector, t: CellType.CellTypeVal, relationship: (Sprite, Vector, Rectangular, Vector) => Boolean) =
+    channel.rectangles
       .filter(r => relationship(sprite, r))
-      .map(r => tiles(r.col))
+      .map(r => channel.tiles(r.col))
       .map(_.cellType)
       .contains(t)
   */

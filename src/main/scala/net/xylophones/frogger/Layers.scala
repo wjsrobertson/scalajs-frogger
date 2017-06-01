@@ -77,7 +77,7 @@ object Layers {
     topPositions ++ channelPositions ++ bottomPositions ++ homesPositions
 
   def initialModel() = {
-    val frogPos = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2)
+    val frogPos = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2).add(0, -32*6)
 
     Model(positions = allPositions(channelPositions), frogPosition = frogPos, layers = layers)
   }

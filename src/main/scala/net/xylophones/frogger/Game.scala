@@ -10,14 +10,18 @@ class Image(src: String) {
 
 case class Vector(x: Int, y: Int) {
   def add(X: Int, Y: Int): Vector = Vector(X + x, Y + y)
+
   def add(v: Vector): Vector = add(v.x, v.y)
+
   def scale(s: Int) = Vector(s * x, s * y)
+
+  override def toString(): String = s"($x, $y)"
 }
 
 trait Rectangular {
-  def x: Int
+  def x: Int = 0
 
-  def y: Int
+  def y: Int = 0
 
   def width: Int
 
@@ -27,34 +31,41 @@ trait Rectangular {
 
   def centre: (Int, Int) = (x + width / 2, y + height / 2)
 
-  def intersects(other: Rectangular) = {
-    val minX = x + padding
-    val maxX = x + width - padding
-    val minY = y + padding
-    val maxY = y + height - padding
+  def intersects(position: Vector, other: Rectangular, otherPosition: Vector) = {
+    val minX = position.x + x + padding
+    val maxX = position.x + x + width - padding
+    val minY = position.y + y + padding
+    val maxY = position.y + y + height - padding
 
-    val otherMinX = other.x + other.padding
-    val otherMaxX = other.x + other.width - other.padding
-    val otherMinY = other.y + other.padding
-    val otherMaxY = other.y + other.height - other.padding
+    val otherMinX = otherPosition.x + other.x + other.padding
+    val otherMaxX = otherPosition.x + other.x + other.width - other.padding
+    val otherMinY = otherPosition.y + other.y + other.padding
+    val otherMaxY = otherPosition.y + other.y + other.height - other.padding
 
     ((minY > otherMinY && minY < otherMaxY) || (maxY > otherMinY && maxY < otherMaxY)) &&
       ((minX > otherMinX && minX < otherMaxX) || (maxX > otherMinX && maxX < otherMaxX))
   }
 
-  def contains(point: (Int, Int)) = {
-    val px = point._1
-    val py = point._2
+  def contains(position: Vector, point: Vector, otherPosition: Vector) = {
+    // println(s"($x,$y) / $position / $point / $otherPosition")
+    val px = point.x + otherPosition.x
+    val py = point.y + otherPosition.y
 
-    px >= x && py >= y && px < (x + width) && py < (y + height)
+    px >= x + position.x &&
+      py >= y + position.y &&
+      px < (x + position.x + width) &&
+      py < (y + position.y + height)
   }
 }
 
-class Rectangle(val x: Int,
-                val y: Int,
+class Rectangle(override val x: Int,
+                override val y: Int,
                 val width: Int,
                 val height: Int,
-                override val padding: Int = 0) extends Rectangular
+                override val padding: Int = 0) extends Rectangular {
+
+  override def toString(): String = s"$x, $y, $width, $height, $padding"
+}
 
 abstract class Layer(val width: Int = 0,
                      val height: Int = 0) {
@@ -81,17 +92,15 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, v
 
   def getCell(row: Int, column: Int) = contents(row)(column)
 
-  /*
-  def rectangles(): Seq[Rectangle with CellCoords] = for {
+  val rectangles: Seq[Rectangle with CellCoords] = for {
     r <- 0 until rows
     c <- 0 until columns
-    rX = x + (r * tileImage.tileWidth)
-    rY = y + (c * tileImage.tileHeight)
+    rX = r * tileImage.tileWidth
+    rY = c * tileImage.tileHeight
   } yield new Rectangle(rX, rY, tileImage.tileWidth, tileImage.tileHeight) with CellCoords {
     val col = c
     val row = r
   }
-  */
 
   override def draw(context: CanvasRenderingContext2D, position: Vector) = {
     for (row <- 0 until rows) {
@@ -153,8 +162,8 @@ class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h
   }
 }
 
-class Sprite(image: Image, frameWidth: Int) {
-  val padding = Math.max(1, frameWidth / 4)
+class Sprite(image: Image, frameWidth: Int) extends Rectangular {
+  override val padding = Math.max(1, frameWidth / 4)
   private val img = image.element
   private val numFrames: Int = image.element.width / frameWidth
 
@@ -163,9 +172,10 @@ class Sprite(image: Image, frameWidth: Int) {
     context.drawImage(img, imgXOffset, 0, frameWidth, img.height, position.x, position.y, frameWidth, img.height)
   }
 
-  def midPoint(position: Vector): Vector = Vector(position.x + (width / 2) + 1, position.y + (height / 2) + 1)
+  val width = frameWidth
 
-  def width = frameWidth
+  val height = img.height
 
-  def height = img.height
+  val midPoint = Vector(width / 2, height / 2)
+
 }
