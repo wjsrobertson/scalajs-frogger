@@ -122,7 +122,7 @@ object ChannelCollisionChecker {
 
   def isLanding(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
     channel.rectangles
-      .filter(r => r.contains(chPosition, sprite.midPoint, sPosition))
+      .filter(r => r.contains(chPosition, sprite.midPoint.add(sPosition)))
       .map(r => channel.tiles(r.col))
       .map(_.cellType)
       .contains(CellType.Moving)

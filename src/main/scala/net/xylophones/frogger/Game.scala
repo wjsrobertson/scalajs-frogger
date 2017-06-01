@@ -46,10 +46,11 @@ trait Rectangular {
       ((minX > otherMinX && minX < otherMaxX) || (maxX > otherMinX && maxX < otherMaxX))
   }
 
-  def contains(position: Vector, point: Vector, otherPosition: Vector) = {
+  // position and point are global coords
+  def contains(position: Vector, point: Vector) = {
     // println(s"($x,$y) / $position / $point / $otherPosition")
-    val px = point.x + otherPosition.x
-    val py = point.y + otherPosition.y
+    val px = point.x
+    val py = point.y
 
     px >= x + position.x &&
       py >= y + position.y &&
