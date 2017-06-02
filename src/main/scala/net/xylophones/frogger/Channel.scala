@@ -2,7 +2,7 @@ package net.xylophones.frogger
 
 class Channel(val tiles: Array[Cell.CellVal], val velocity: Int)
   extends TiledLayer(
-    new TiledImage(new Image("img/tiles.png"), 32, 32), 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
+    new TiledImage(Image("img/tiles.png"), 32, 32), 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
 }
 
 object Channel {
@@ -139,9 +139,11 @@ object ChannelCollisionChecker {
 }
 
 object CellType extends Enumeration {
-  case class CellTypeVal() extends super.Val()
+  case class CellTypeVal(override val id: Int) extends super.Val(id)
 
-  val Moving, Deadly, Safe = CellTypeVal()
+  val Moving = CellTypeVal(0)
+  val Deadly = CellTypeVal(1)
+  val Safe = CellTypeVal(2)
 }
 
 object Cell extends Enumeration {

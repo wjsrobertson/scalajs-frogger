@@ -3,9 +3,13 @@ package net.xylophones.frogger
 import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.{CanvasRenderingContext2D, document}
 
-class Image(src: String) {
-  val element = document.createElement("img").asInstanceOf[HTMLImageElement]
-  element.src = src
+class Image(val element: HTMLImageElement)
+
+object Image {
+  def apply(src: String): Image = {
+    val element = document.createElement("img").asInstanceOf[HTMLImageElement]
+    new Image(element)
+  }
 }
 
 case class Vector(x: Int, y: Int) {
@@ -15,7 +19,7 @@ case class Vector(x: Int, y: Int) {
 
   def scale(s: Int) = Vector(s * x, s * y)
 
-  override def toString(): String = s"($x, $y)"
+  override lazy val toString: String = s"($x, $y)"
 }
 
 trait Rectangular {
@@ -47,6 +51,7 @@ trait Rectangular {
   }
 
   // position and point are global coords
+  // TODO - use padding
   def contains(position: Vector, point: Vector) = {
     // println(s"($x,$y) / $position / $point / $otherPosition")
     val px = point.x
@@ -65,7 +70,7 @@ class Rectangle(override val x: Int,
                 val height: Int,
                 override val padding: Int = 0) extends Rectangular {
 
-  override def toString(): String = s"$x, $y, $width, $height, $padding"
+  override lazy val toString: String = s"($x, $y): $width, $height, $padding"
 }
 
 abstract class Layer(val width: Int = 0,
@@ -80,10 +85,11 @@ trait CellCoords {
   def row: Int
 }
 
-case class Tile(col: Int, row: Int, id: Int = 0)
+case class Tile(col: Int, row: Int, tileId: Int = 0)
 
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
+// TODO - rows and columns should be in consistent order throughout codebase
 class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, val columns: Int, contents: Array[Array[Tile]]) extends Layer {
   protected val img = tileImage.image.element
 
@@ -93,11 +99,11 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, v
 
   def getCell(row: Int, column: Int) = contents(row)(column)
 
-  val rectangles: Seq[Rectangle with CellCoords] = for {
-    r <- 0 until rows
+  lazy val rectangles: Seq[Rectangle with CellCoords] = for {
     c <- 0 until columns
-    rX = r * tileImage.tileWidth
-    rY = c * tileImage.tileHeight
+    r <- 0 until rows
+    rX = c * tileImage.tileWidth
+    rY = r * tileImage.tileHeight
   } yield new Rectangle(rX, rY, tileImage.tileWidth, tileImage.tileHeight) with CellCoords {
     val col = c
     val row = r

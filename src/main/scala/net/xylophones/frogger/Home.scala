@@ -66,4 +66,4 @@ object HomeFactory {
 
 class HomeCell(val tile: Tile)
 
-class Home(id: Int, tiles: Array[Array[HomeCell]]) extends TiledLayer(new TiledImage(new Image("img/top.png"), 8, 16), 3, 13, tiles.map { row => row.map { cell => cell.tile } })
+class Home(id: Int, tiles: Array[Array[HomeCell]]) extends TiledLayer(new TiledImage(Image("img/top.png"), 8, 16), 3, 13, tiles.map { row => row.map { cell => cell.tile } })

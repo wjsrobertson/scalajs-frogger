@@ -52,7 +52,7 @@ object Layers {
   private val scoreLayer = new BackgroundLayer(32 * 16, 32, darkBlue)
   private val scoreSpace = new BackgroundLayer(32 * 16, 32, darkBlue)
   private val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)
-  private val frog = new Sprite(new Image("img/frog.png"), 22)
+  private val frog = new Sprite(Image("img/frog.png"), 22)
 
   private val lifeLayer = new BackgroundLayer(32 * 16, 16, black)
   private val timeLayer = new BackgroundLayer(32 * 16, 32, black)
