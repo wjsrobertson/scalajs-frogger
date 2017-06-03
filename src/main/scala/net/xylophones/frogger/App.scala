@@ -38,7 +38,7 @@ object App extends JSApp {
   }
 
   def draw(model: Model) = {
-    (model.layers.all zip model.positions).foreach { case (l, p) => l.draw(ctx, p) }
+    (model.layers.all zip model.positions).foreach { case (l, p) => l.draw(ctx, p, model) }
 
     model.layers.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
   }

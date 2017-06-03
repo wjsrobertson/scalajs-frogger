@@ -73,7 +73,7 @@ class Rectangle(override val x: Int,
 abstract class Layer(val width: Int = 0,
                      val height: Int = 0) {
 
-  def draw(context: CanvasRenderingContext2D, offset: Vector)
+  def draw(context: CanvasRenderingContext2D, offset: Vector, model: Model)
 }
 
 trait CellCoords {
@@ -106,7 +106,7 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, v
     val row = r
   }
 
-  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model) = {
     for (row <- 0 until rows) {
       for (column <- 0 until columns) {
         val tile = contents(row)(column)
@@ -160,7 +160,7 @@ object VerticalCompositeLayout {
 }
 
 class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h) {
-  override def draw(context: CanvasRenderingContext2D, position: Vector) = {
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model) = {
     context.fillStyle = colour
     context.strokeStyle = colour
     context.fillRect(position.x, position.y, width, height)
@@ -170,6 +170,7 @@ class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h
 class Sprite(image: Image, frameWidth: Int) extends Rectangular {
   override val padding = Math.max(1, frameWidth / 4)
 
+  // TODO - mke this accept a Model then make it a Layer again?
   def draw(context: CanvasRenderingContext2D, position: Vector, frame: Int) = {
     val imgXOffset = frame * frameWidth
     context.drawImage(image.element, imgXOffset, 0, frameWidth, image.height, position.x, position.y, frameWidth, image.height)

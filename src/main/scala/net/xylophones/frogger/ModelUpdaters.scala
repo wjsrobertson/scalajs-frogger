@@ -13,6 +13,10 @@ object Config {
   val frogMinY = scorePanelHeight
   val frogMaxY = scorePanelHeight + homeHeight + channelsHeight - (channelHeight - frogHeight) / 2
   val frogDeathTime = 28
+  val timeImageWidth = 64
+  val timeHeight = 16
+  val statusHeight = 16
+  val levelTimeLimitMs = 60000
 }
 
 trait ModelUpdater {
@@ -20,7 +24,7 @@ trait ModelUpdater {
 }
 
 object ModelUpdaters {
-  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander , FrogPositionConstrainer, FrogDeathChecker)
+  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander , FrogPositionConstrainer, FrogCollisionChecker)
 }
 
 object FrogMoveUpdater extends ModelUpdater {
@@ -81,7 +85,7 @@ object FrogChannelLander extends ModelUpdater {
   }
 }
 
-object FrogDeathChecker extends ModelUpdater {
+object FrogCollisionChecker extends ModelUpdater {
   def update(model: Model): Model = {
 
     val isDeadlyCollision = model.frogDeathTimer == 0 &&
@@ -93,6 +97,14 @@ object FrogDeathChecker extends ModelUpdater {
     } else if (model.frogDeathTimer > 0) {
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
     } else model
+  }
+}
+
+object TimerUpdater extends ModelUpdater {
+  def update(model: Model): Model = {
+    if (model.levelDurationMs() > Config.levelTimeLimitMs)
+      model.copy(frogDeathTimer = Config.frogDeathTime)
+    else model
   }
 }
 

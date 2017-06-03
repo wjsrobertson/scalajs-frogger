@@ -31,7 +31,7 @@ trait FroggerTestSugar extends MockitoSugar {
       scoreSpace = mock[BackgroundLayer],
       homePlaceholder = mock[BackgroundLayer],
       frog = mock[Sprite],
-      lifeLayer = mock[BackgroundLayer],
+      statusLayer = mock[BackgroundLayer],
       timeLayer = mock[BackgroundLayer],
       channels = Seq(channel),
       homes = Seq()

@@ -7,7 +7,7 @@ import org.scalatest.{BeforeAndAfterEach, FunSuite, Matchers}
 import org.scalatest.junit.JUnitRunner
 
 @RunWith(classOf[JUnitRunner])
-class FrogDeathCheckerTest extends FunSuite with Matchers with FroggerTestSugar {
+class FrogCollisionCheckerTest extends FunSuite with Matchers with FroggerTestSugar {
 
   test("FrogDeathChecker sets frog death timer when frog intersects with deadly cell") {
     val frogSprite = createSprite(5, 5)
@@ -20,7 +20,7 @@ class FrogDeathCheckerTest extends FunSuite with Matchers with FroggerTestSugar 
     val newModel = model.copy(frogDeathTimer = 0, layers = newLayers, frogPosition = fPosition)
 
     // when
-    val updatedModel = FrogDeathChecker.update(newModel)
+    val updatedModel = FrogCollisionChecker.update(newModel)
 
     // then
     updatedModel.frogDeathTimer shouldBe Config.frogDeathTime
