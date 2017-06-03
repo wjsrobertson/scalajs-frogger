@@ -1,4 +1,5 @@
 package net.xylophones.frogger
+import net.xylophones.frogger.Layers.darkBlue
 import org.scalajs.dom.CanvasRenderingContext2D
 
 object Direction {
@@ -37,7 +38,7 @@ case class Model(score: Int = 0,
   }
 }
 
-case class Layers(scoreTitle: BackgroundLayer,
+case class Layers(scoreTitle: ScoreTitleLayer,
                   scoreLayer: BackgroundLayer,
                   scoreSpace: BackgroundLayer,
                   homePlaceholder: BackgroundLayer,
@@ -52,6 +53,23 @@ case class Layers(scoreTitle: BackgroundLayer,
       channels ++
       Seq(statusLayer, timeLayer) ++
       homes
+}
+
+// 66, 160
+
+class ScoreTitleLayer extends Layer(Config.gameWidth, Config.scoreTitleHeight) {
+  val oneUp = Image("img/1_up.png")
+  val highScore = Image("img/high_score.png")
+
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
+    context.fillStyle = "#00002A"
+    context.strokeStyle = "#00002A"
+    context.fillRect(position.x, position.y, Config.gameWidth, Config.scoreTitleHeight)
+
+    context.drawImage(oneUp.element, 0, 0, oneUp.width, oneUp.height, 66, position.y, oneUp.width, oneUp.height)
+
+    context.drawImage(highScore.element, 0, 0, highScore.width, highScore.height, 160, position.y, highScore.width, highScore.height)
+  }
 }
 
 // TODO - can I use a shorter version of drawImage ?
@@ -108,7 +126,7 @@ object Layers {
   private val green = "#00FF00"
   private val gameWidth = 32 * 16
 
-  private val scoreTitle = new BackgroundLayer(32 * 16, 32, darkBlue)
+  private val scoreTitle = new ScoreTitleLayer
   private val scoreLayer = new BackgroundLayer(32 * 16, 32, darkBlue)
   private val scoreSpace = new BackgroundLayer(32 * 16, 32, darkBlue)
   private val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)

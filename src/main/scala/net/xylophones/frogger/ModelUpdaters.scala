@@ -14,8 +14,10 @@ object Config {
   val frogMaxY = scorePanelHeight + homeHeight + channelsHeight - (channelHeight - frogHeight) / 2
   val frogDeathTime = 28
   val timeImageWidth = 64
+  // TODO - replace all these 16's with a single val - smallTileHeight
   val timeHeight = 16
   val statusHeight = 16
+  val scoreTitleHeight = 16
   val levelTimeLimitMs = 60000
 }
 
