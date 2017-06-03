@@ -1,13 +1,14 @@
 package net.xylophones.frogger
 
 object Config {
+
   val gameWidth = 512
   val gameHeight = 1200
   val frogWidth = 22
   val frogHeight = 22
   val channelHeight = 32
   val channelsHeight = channelHeight * 12
-  val scorePanelHeight = 32 * 3
+  val scorePanelHeight = 16 * 3
   val homeHeight = 16 * 3
   val bottomPanelHeight = 16 + 32
   val frogMinY = scorePanelHeight
@@ -18,7 +19,9 @@ object Config {
   val timeHeight = 16
   val statusHeight = 16
   val scoreTitleHeight = 16
+  val scoreHeight = 16
   val levelTimeLimitMs = 60000
+  val pointsForJump = 10
 }
 
 trait ModelUpdater {
@@ -26,7 +29,7 @@ trait ModelUpdater {
 }
 
 object ModelUpdaters {
-  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander , FrogPositionConstrainer, FrogCollisionChecker)
+  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander , FrogPositionConstrainer, FrogCollisionChecker, HighScoreModelupdater)
 }
 
 object FrogMoveUpdater extends ModelUpdater {
@@ -38,18 +41,20 @@ object FrogMoveUpdater extends ModelUpdater {
       else if (userDirection.isDefined) userDirection
       else None
 
-    val (fp, ff, ft) = jumpDirection match {
+    // TODO - can probably map to Model rather than using tuple
+    val (fp, ff, ft, sc) = jumpDirection match {
       case Some(d) =>
         val scale = 8
         val newFrogPosition = model.frogPosition.add(d.vector.scale(scale))
         val newFrogDirection = d
         val newFrogTimer = if (model.frogJumpTimer >= 1) model.frogJumpTimer - 1 else 3
+        val newScore = if (newFrogTimer == 0) model.score + Config.pointsForJump else model.score
 
-        (newFrogPosition, newFrogDirection, newFrogTimer)
-      case _ => (model.frogPosition, model.frogFacing, model.frogJumpTimer)
+        (newFrogPosition, newFrogDirection, newFrogTimer, newScore)
+      case _ => (model.frogPosition, model.frogFacing, model.frogJumpTimer, model.score)
     }
 
-    model.copy(frogPosition = fp, frogFacing = ff, frogJumpTimer = ft)
+    model.copy(frogPosition = fp, frogFacing = ff, frogJumpTimer = ft, score=sc)
   }
 }
 
@@ -137,6 +142,13 @@ object ChannelUpdater extends ModelUpdater {
     if (velocity > 0 && x > 0) x - width / 2
     else if (velocity < 0 && mid < 0) x + width / 2
     else x
+  }
+}
+
+object HighScoreModelupdater extends ModelUpdater {
+  def update(model: Model): Model = {
+    if (model.score > model.highScore) model.copy(highScore = model.score)
+    else model
   }
 }
 

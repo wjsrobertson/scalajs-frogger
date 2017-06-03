@@ -16,6 +16,7 @@ object Direction {
 }
 
 case class Model(score: Int = 0,
+                 highScore: Int = 0,
                  lives: Int = 0,
                  frogState: Int = 0,
                  level: Int = 1,
@@ -39,7 +40,7 @@ case class Model(score: Int = 0,
 }
 
 case class Layers(scoreTitle: ScoreTitleLayer,
-                  scoreLayer: BackgroundLayer,
+                  scoreLayer: ScoreLayer,
                   scoreSpace: BackgroundLayer,
                   homePlaceholder: BackgroundLayer,
                   frog: Sprite,
@@ -55,20 +56,47 @@ case class Layers(scoreTitle: ScoreTitleLayer,
       homes
 }
 
-// 66, 160
-
 class ScoreTitleLayer extends Layer(Config.gameWidth, Config.scoreTitleHeight) {
   val oneUp = Image("img/1_up.png")
   val highScore = Image("img/high_score.png")
+
+  // TODO - don't use magic variables here
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
+    context.fillStyle = "#00002A"
+    context.strokeStyle = "#00002A"
+    context.fillRect(position.x, position.y, Config.gameWidth, Config.scoreTitleHeight)
+
+    context.drawImage(oneUp.element, 0, 0, oneUp.width, oneUp.height, 68, position.y, oneUp.width, oneUp.height)
+
+    context.drawImage(highScore.element, 0, 0, highScore.width, highScore.height, 193, position.y, highScore.width, highScore.height)
+  }
+}
+
+class ScoreLayer extends Layer(Config.gameWidth, Config.scoreHeight) {
+  val nums = Image("img/numbers.png")
+  val tileSize = 16
+  // TODO - don't use magic variables here
 
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
     context.fillStyle = "#00002A"
     context.strokeStyle = "#00002A"
     context.fillRect(position.x, position.y, Config.gameWidth, Config.scoreTitleHeight)
 
-    context.drawImage(oneUp.element, 0, 0, oneUp.width, oneUp.height, 66, position.y, oneUp.width, oneUp.height)
+    drawNumber(context, 128, position.y, model.score)
+    drawNumber(context, 320, position.y, model.highScore)
+  }
 
-    context.drawImage(highScore.element, 0, 0, highScore.width, highScore.height, 160, position.y, highScore.width, highScore.height)
+  def drawNumber(context: CanvasRenderingContext2D, endX: Int, y: Int, numtoDraw: Int): Unit = {
+      val digits = numtoDraw.toString.split("")
+
+      digits.reverse.zipWithIndex.foreach{ ni =>
+        val digit = ni._1.toInt
+        val sequence = ni._2
+        val sourceX = digit * tileSize
+        val writeX =  (endX-tileSize) - sequence * tileSize
+
+        context.drawImage(nums.element, sourceX, 0, tileSize, tileSize, writeX, y, tileSize, tileSize)
+    }
   }
 }
 
@@ -127,8 +155,8 @@ object Layers {
   private val gameWidth = 32 * 16
 
   private val scoreTitle = new ScoreTitleLayer
-  private val scoreLayer = new BackgroundLayer(32 * 16, 32, darkBlue)
-  private val scoreSpace = new BackgroundLayer(32 * 16, 32, darkBlue)
+  private val scoreLayer = new ScoreLayer
+  private val scoreSpace = new BackgroundLayer(32 * 16, 16, darkBlue)
   private val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)
   private val frog = new Sprite(Image("img/frog.png"), 22)
 
