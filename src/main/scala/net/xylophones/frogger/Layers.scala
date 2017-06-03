@@ -1,4 +1,5 @@
 package net.xylophones.frogger
+import net.xylophones.frogger.App.ctx
 import net.xylophones.frogger.Layers.darkBlue
 import org.scalajs.dom.CanvasRenderingContext2D
 
@@ -17,8 +18,7 @@ object Direction {
 
 case class Model(score: Int = 0,
                  highScore: Int = 0,
-                 lives: Int = 0,
-                 frogState: Int = 0,
+                 lives: Int = 3,
                  level: Int = 1,
                  levelStartTimeMs: Long = System.currentTimeMillis(),
                  frogJumpTimer: Int = 0,
@@ -27,6 +27,10 @@ case class Model(score: Int = 0,
                  positions: Seq[Vector],
                  layers: Layers,
                  frogDeathTimer: Int = 0) {
+
+  def inPlay() = lives > 0
+
+  def inDeathAnimation() = frogDeathTimer > 0
 
   def levelDurationMs() = System.currentTimeMillis() - levelStartTimeMs
 
@@ -47,7 +51,8 @@ case class Layers(scoreTitle: ScoreTitleLayer,
                   statusLayer: StatusLayer,
                   timeLayer: TimeLayer,
                   channels: Seq[Channel],
-                  homes: Seq[Home]) {
+                  homes: Seq[Home],
+                  frogLayer: FrogLayer) {
 
   def all: Seq[Layer] =
     Seq(scoreTitle, scoreLayer, scoreSpace, homePlaceholder) ++
@@ -148,6 +153,21 @@ class TimeLayer extends Layer(Config.gameWidth, Config.timeHeight) {
   }
 }
 
+class FrogLayer(val frog: Sprite, val deadFrog: Sprite) extends Layer(Config.frogWidth, Config.frogHeight) {
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
+    println(s"dt: ${model.frogDeathTimer}")
+
+    if (model.inDeathAnimation()) {
+      println("dead frog")
+      val ratio = model.frogDeathTimer.toDouble / Config.frogDeathTime.toDouble
+      val frame = Math.min((ratio * 4).floor, 3).toInt
+      deadFrog.draw(ctx, model.frogPosition, frame)
+    } else if (model.inPlay()) {
+      frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
+    }
+  }
+}
+
 object Layers {
   private val darkBlue = "#00002A"
   private val black = "#000000"
@@ -158,7 +178,10 @@ object Layers {
   private val scoreLayer = new ScoreLayer
   private val scoreSpace = new BackgroundLayer(32 * 16, 16, darkBlue)
   private val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)
+
   private val frog = new Sprite(Image("img/frog.png"), 22)
+  private val deadFrog = new Sprite(Image("img/deadfrog.png"), 22)
+  val frogLayer = new FrogLayer(frog, deadFrog)
 
   private val statusLayer = new StatusLayer
   private val timeLayer = new TimeLayer
@@ -177,13 +200,13 @@ object Layers {
   private val homes = (0 to 5).map(HomeFactory.create(_))
   private val homesPositions = HorizontalCompositeLayout.layout(topPositions(3), homes)
   private val layers =
-    new Layers(scoreTitle, scoreLayer, scoreSpace, homePlaceholder, frog, statusLayer, timeLayer, channels, homes)
+    new Layers(scoreTitle, scoreLayer, scoreSpace, homePlaceholder, frog, statusLayer, timeLayer, channels, homes, frogLayer)
 
   def allPositions(channelPositions: Seq[Vector]) =
     topPositions ++ channelPositions ++ bottomPositions ++ homesPositions
 
   def initialModel() = {
-    val frogPos = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2).add(0, -32*8)
+    val frogPos = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2)
 
     Model(positions = allPositions(channelPositions), frogPosition = frogPos, layers = layers)
   }

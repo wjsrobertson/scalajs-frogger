@@ -26,15 +26,16 @@ trait FroggerTestSugar extends MockitoSugar {
 
   def createModel(channel: Channel, channelPosition: Vector): Model = {
     val layers = Layers(
-      scoreTitle = mock[BackgroundLayer],
-      scoreLayer = mock[BackgroundLayer],
+      scoreTitle = mock[ScoreTitleLayer],
+      scoreLayer = mock[ScoreLayer],
       scoreSpace = mock[BackgroundLayer],
       homePlaceholder = mock[BackgroundLayer],
       frog = mock[Sprite],
-      statusLayer = mock[BackgroundLayer],
-      timeLayer = mock[BackgroundLayer],
+      statusLayer = mock[StatusLayer],
+      timeLayer = mock[TimeLayer],
       channels = Seq(channel),
-      homes = Seq()
+      homes = Seq(),
+      frogLayer = mock[FrogLayer]
     )
 
     val pos = layers.all.map(_ => channelPosition)

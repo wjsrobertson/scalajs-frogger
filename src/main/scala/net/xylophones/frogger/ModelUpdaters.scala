@@ -100,6 +100,7 @@ object FrogCollisionChecker extends ModelUpdater {
       .exists(chp => ChannelCollisionChecker.isDeadlyCollision(chp._1, chp._2, model.layers.frog, model.frogPosition))
 
     if (isDeadlyCollision) {
+      println("DEADLY")
       model.copy(frogDeathTimer = Config.frogDeathTime)
     } else if (model.frogDeathTimer > 0) {
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
@@ -109,7 +110,7 @@ object FrogCollisionChecker extends ModelUpdater {
 
 object TimerUpdater extends ModelUpdater {
   def update(model: Model): Model = {
-    if (model.levelDurationMs() > Config.levelTimeLimitMs)
+    if (model.levelDurationMs() > Config.levelTimeLimitMs && model.frogDeathTimer == 0)
       model.copy(frogDeathTimer = Config.frogDeathTime)
     else model
   }

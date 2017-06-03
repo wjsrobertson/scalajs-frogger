@@ -44,8 +44,8 @@ trait Rectangular {
 
   // TODO padding and get rid of negation
   def intersects(position: Vector, other: Rectangular, otherPosition: Vector) = {
-    !(position.x >= otherPosition.x + other.width || otherPosition.x >= position.x + width ||
-      position.y >= otherPosition.y + other.height || otherPosition.y >= position.y + height)
+    !(position.x + x >= otherPosition.x + other.width || otherPosition.x >= position.x + x + width ||
+      position.y + y >= otherPosition.y + other.height || otherPosition.y >= position.y + y + height)
   }
 
   // position and point are global coords

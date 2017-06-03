@@ -40,7 +40,8 @@ object App extends JSApp {
   def draw(model: Model) = {
     (model.layers.all zip model.positions).foreach { case (l, p) => l.draw(ctx, p, model) }
 
-    model.layers.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
+    model.layers.frogLayer.draw(ctx, model.frogPosition, model)
+    //model.layers.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
   }
 
   def addCanvas(): Unit = {
