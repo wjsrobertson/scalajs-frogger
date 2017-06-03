@@ -1,19 +1,20 @@
 package net.xylophones.frogger
 
-class Channel(val tiles: Array[Cell.CellVal], val velocity: Int)
-  extends TiledLayer(
-    new TiledImage(Image("img/tiles.png"), 32, 32), 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
+class Channel(val tiles: Array[Cell.CellVal], val velocity: Int, tiledImage: TiledImage)
+  extends TiledLayer(tiledImage, 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
 }
 
 object Channel {
   def channels(level: Int): Seq[Channel] = {
+    val tiledImage = new TiledImage(Image("img/tiles.png"), 32, 32)
+
     levels(level).split("\n")
       .map(_.trim)
       .filterNot(_.length == 0)
       .map { c => c.split("\t") }
       .map ( x => (x(0).toInt, x(1)) )
       .map { case (velocity, contents) => (velocity.toInt, (contents * 2).split("").map(cell)) }
-      .map { case (velocity, cells) => new Channel(cells, velocity) }
+      .map { case (velocity, cells) => new Channel(cells, velocity, tiledImage) }
   }
 
   private val cell = Map(
@@ -109,6 +110,7 @@ object Channel {
     """.stripMargin)
 }
 
+// TODO - maybe pass in tuples for this
 object ChannelCollisionChecker {
 
   def isDeadlyCollision(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
@@ -118,7 +120,6 @@ object ChannelCollisionChecker {
       .map(_.cellType)
       .contains(CellType.Deadly)
   }
-  //  spriteCell(channel, sprite, CellType.Deadly, (s: Sprite, r: Rectangular) => r.intersects(chPosition, sprite, sPosition))
 
   def isLanding(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
     channel.rectangles
@@ -127,15 +128,6 @@ object ChannelCollisionChecker {
       .map(_.cellType)
       .contains(CellType.Moving)
   }
-  //    spriteCell(channel, sprite, CellType.Moving, (s: Sprite, r: Rectangular) => r.contains(chPosition, sprite.midPoint, sPosition))
-/*
-  private def spriteCell(channel: Channel, chPos:Vector, sprite: Sprite, sPos: Vector, t: CellType.CellTypeVal, relationship: (Sprite, Vector, Rectangular, Vector) => Boolean) =
-    channel.rectangles
-      .filter(r => relationship(sprite, r))
-      .map(r => channel.tiles(r.col))
-      .map(_.cellType)
-      .contains(t)
-  */
 }
 
 object CellType extends Enumeration {

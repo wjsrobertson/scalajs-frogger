@@ -23,7 +23,17 @@ case class Model(score: Int = 0,
                  frogPosition: Vector = Vector(0, 0),
                  frogFacing: Direction.Dir = Direction.Up,
                  positions: Seq[Vector],
-                 layers: Layers)
+                 layers: Layers,
+                 frogDeathTimer: Int = 0) {
+
+  def channelsWithPositions() = {
+    val channelsPos: Seq[(Vector)] = (layers.all zip positions)
+      .filter(_._1.isInstanceOf[Channel])
+      .map(_._2)
+
+    layers.channels zip channelsPos
+  }
+}
 
 case class Layers(scoreTitle: BackgroundLayer,
                   scoreLayer: BackgroundLayer,
@@ -35,7 +45,7 @@ case class Layers(scoreTitle: BackgroundLayer,
                   channels: Seq[Channel],
                   homes: Seq[Home]) {
 
-  val all: Seq[Layer] =
+  def all: Seq[Layer] =
     Seq(scoreTitle, scoreLayer, scoreSpace, homePlaceholder) ++
       channels ++
       Seq(lifeLayer, timeLayer) ++

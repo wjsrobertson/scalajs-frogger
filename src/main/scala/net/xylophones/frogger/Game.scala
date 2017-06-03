@@ -3,11 +3,16 @@ package net.xylophones.frogger
 import org.scalajs.dom.raw.HTMLImageElement
 import org.scalajs.dom.{CanvasRenderingContext2D, document}
 
-class Image(val element: HTMLImageElement)
+class Image(val element: HTMLImageElement) {
+  def width = element.width
+
+  def height = element.height
+}
 
 object Image {
   def apply(src: String): Image = {
     val element = document.createElement("img").asInstanceOf[HTMLImageElement]
+    element.src = src
     new Image(element)
   }
 }
@@ -19,9 +24,11 @@ case class Vector(x: Int, y: Int) {
 
   def scale(s: Int) = Vector(s * x, s * y)
 
-  override lazy val toString: String = s"($x, $y)"
+  override lazy val toString: String = s"($x,$y)"
 }
 
+// TODO - merge Rectangle and Rectangular maybe?
+// TODO - instead of x and y use Vector
 trait Rectangular {
   def x: Int = 0
 
@@ -35,25 +42,15 @@ trait Rectangular {
 
   def centre: (Int, Int) = (x + width / 2, y + height / 2)
 
+  // TODO padding and get rid of negation
   def intersects(position: Vector, other: Rectangular, otherPosition: Vector) = {
-    val minX = position.x + x + padding
-    val maxX = position.x + x + width - padding
-    val minY = position.y + y + padding
-    val maxY = position.y + y + height - padding
-
-    val otherMinX = otherPosition.x + other.x + other.padding
-    val otherMaxX = otherPosition.x + other.x + other.width - other.padding
-    val otherMinY = otherPosition.y + other.y + other.padding
-    val otherMaxY = otherPosition.y + other.y + other.height - other.padding
-
-    ((minY > otherMinY && minY < otherMaxY) || (maxY > otherMinY && maxY < otherMaxY)) &&
-      ((minX > otherMinX && minX < otherMaxX) || (maxX > otherMinX && maxX < otherMaxX))
+    ! (position.x >= otherPosition.x + other.width || otherPosition.x >= position.x + width ||
+      position.y >= otherPosition.y + other.height || otherPosition.y >= position.y + height)
   }
 
   // position and point are global coords
   // TODO - use padding
   def contains(position: Vector, point: Vector) = {
-    // println(s"($x,$y) / $position / $point / $otherPosition")
     val px = point.x
     val py = point.y
 
@@ -70,7 +67,7 @@ class Rectangle(override val x: Int,
                 val height: Int,
                 override val padding: Int = 0) extends Rectangular {
 
-  override lazy val toString: String = s"($x, $y): $width, $height, $padding"
+  override lazy val toString: String = s"($x,$y):${width}x${height}:$padding"
 }
 
 abstract class Layer(val width: Int = 0,
@@ -129,6 +126,7 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, v
   }
 }
 
+// TODO - merge horizontal and vertical into one object
 object HorizontalCompositeLayout {
   def layout(position: Vector, children: Seq[Layer]): Seq[Vector] = {
     val localOffsets = children.map(_.width).foldLeft(Seq(0)) {
@@ -171,18 +169,16 @@ class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h
 
 class Sprite(image: Image, frameWidth: Int) extends Rectangular {
   override val padding = Math.max(1, frameWidth / 4)
-  private val img = image.element
-  private val numFrames: Int = image.element.width / frameWidth
 
   def draw(context: CanvasRenderingContext2D, position: Vector, frame: Int) = {
     val imgXOffset = frame * frameWidth
-    context.drawImage(img, imgXOffset, 0, frameWidth, img.height, position.x, position.y, frameWidth, img.height)
+    context.drawImage(image.element, imgXOffset, 0, frameWidth, image.height, position.x, position.y, frameWidth, image.height)
   }
 
   val width = frameWidth
 
-  val height = img.height
+  def height = image.height
 
-  val midPoint = Vector(width / 2, height / 2)
+  def midPoint = Vector(width / 2, height / 2)
 
 }

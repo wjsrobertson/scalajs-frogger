@@ -12,6 +12,7 @@ object Config {
   val bottomPanelHeight = 16 + 32
   val frogMinY = scorePanelHeight
   val frogMaxY = scorePanelHeight + homeHeight + channelsHeight - (channelHeight - frogHeight) / 2
+  val frogDeathTime = 28
 }
 
 trait ModelUpdater {
@@ -19,7 +20,7 @@ trait ModelUpdater {
 }
 
 object ModelUpdaters {
-  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer)
+  val updaters = Seq(ChannelUpdater, FrogMoveUpdater, FrogChannelLander , FrogPositionConstrainer, FrogDeathChecker)
 }
 
 object FrogMoveUpdater extends ModelUpdater {
@@ -68,20 +69,30 @@ object FrogPositionConstrainer extends ModelUpdater {
 
 object FrogChannelLander extends ModelUpdater {
   def update(model: Model): Model = {
-    val channelPos: Seq[(Vector)] = (model.layers.all zip model.positions)
-      .filter(_._1.isInstanceOf[Channel])
-      .map(_._2)
 
-    val landingChannel = (model.layers.channels zip channelPos)
+    val landingChannel = model.channelsWithPositions()
       .find(x => ChannelCollisionChecker.isLanding(x._1, x._2, model.layers.frog, model.frogPosition))
       .map(_._1)
 
-   // println(landingChannel)
-
     landingChannel.map(ch => ch.velocity)
-      .map(vel => model.frogPosition.add(vel, model.frogPosition.y))
+      .map(vel => model.frogPosition.add(vel, 0))
       .map(fp => model.copy(frogPosition = fp))
       .getOrElse(model)
+  }
+}
+
+object FrogDeathChecker extends ModelUpdater {
+  def update(model: Model): Model = {
+
+    val isDeadlyCollision = model.frogDeathTimer == 0 &&
+      model.channelsWithPositions()
+      .exists(chp => ChannelCollisionChecker.isDeadlyCollision(chp._1, chp._2, model.layers.frog, model.frogPosition))
+
+    if (isDeadlyCollision) {
+      model.copy(frogDeathTimer = Config.frogDeathTime)
+    } else if (model.frogDeathTimer > 0) {
+      model.copy(frogDeathTimer = model.frogDeathTimer - 1)
+    } else model
   }
 }
 
@@ -115,4 +126,9 @@ object ChannelUpdater extends ModelUpdater {
   }
 }
 
-
+/*
+Every safe step scores 10 points, and every frog arriving home scores 50 points plus 10 per unused second.
+Guiding a lady frog home or eating a fly scores 200 points), and when all
+5 frogs are home to end the level the player earns 1,000 points.
+Players earn an extra life at 10,000 or 20,000 points, and none thereafter.
+ */

@@ -19,7 +19,6 @@ class TiledLayerTest extends FunSuite with Matchers with MockitoSugar with Befor
 
   val underTest = new TiledLayer(tiledImage, 1, 2, tiles)
 
-
   test("TiledLayer contains Rectangles with correct local offset") {
     val rects = underTest.rectangles
 
