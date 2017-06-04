@@ -102,9 +102,17 @@ object FrogCollisionChecker extends ModelUpdater {
     if (isDeadlyCollision) {
       println("DEADLY")
       model.copy(frogDeathTimer = Config.frogDeathTime)
-    } else if (model.frogDeathTimer > 0) {
+    } else if (model.frogDeathTimer > 1) {
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
     } else model
+  }
+}
+
+object NextLifeUpdater extends ModelUpdater {
+  def update(model: Model): Model = {
+    if (model.frogDeathTimer == 1) {
+      // init new level
+    }
   }
 }
 
