@@ -29,11 +29,13 @@ object App extends JSApp {
 
       loop(System.currentTimeMillis(), newModel)
     }
+
+    println(s"s: ${model.playState}")
   }
 
   private def updateModel(model: Model): Model = {
     ModelUpdaters.updaters.foldLeft(model) {
-      (updatedModel: Model, updater: ModelUpdater) => updater.update(updatedModel)
+      (updatedModel: Model, updater: ModelUpdater) => updater.updateIfApplicable(updatedModel)
     }
   }
 

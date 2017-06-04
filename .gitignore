@@ -18,3 +18,8 @@ project/plugins/project/
 
 # Intellij
 .idea/
+
+# Mine
+img.old
+.DS_Store
+*/.DS_Store

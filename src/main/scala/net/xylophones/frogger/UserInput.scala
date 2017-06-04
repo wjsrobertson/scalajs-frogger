@@ -24,5 +24,9 @@ object UserInput {
     keys -= e.keyCode
   }, false)
 
-  def direction(): Option[Direction.Dir] = keys.flatMap(directionKeyCodes.get(_)).headOption
+  def direction(): Option[Direction.Dir] = keys.flatMap(directionKeyCodes.get).headOption
+
+  def newGame(): Boolean = keys.contains(78)
+
+  def fullScreen(): Boolean = keys.contains(70)
 }
