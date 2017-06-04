@@ -11,7 +11,7 @@ abstract class ModelUpdater(states: Seq[PlayState.State]) {
 
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer, FrogCollisionChecker,
-    NextLifeUpdater, HighScoreModelupdater, FrogHomeLander)
+    NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater)
 }
 
 object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
@@ -95,11 +95,13 @@ object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
     .zipWithIndex
     .find(hpi => isLanding(hpi._1._1, hpi._1._2, model.layers.frog, model.frogPosition))
     .map { case ((h, p), i) =>
-      val newHome = HomeFactory.create(i, 'F')
+      val newHome = HomeFactory.create(i, HomeContent.Frog)
       val newHomes = model.layers.homes.patch(i, Seq(newHome), 1)
       // TODO - add on score for unused seconds
-      model.copy(layers = model.layers.copy(
-        homes = newHomes),
+      // TODO - a lot of this "reset" values are common to other ModelUpdaters - maybe factor out?
+      // TODO - no magic values
+      model.copy(
+        layers = model.layers.copy(homes = newHomes),
         score = model.score + 50,
         frogPosition = Layers.initialFrogPosition,
         levelStartTimeMs = System.currentTimeMillis(),
@@ -163,9 +165,29 @@ object ChannelUpdater extends ModelUpdater(PlayState.all) {
   }
 }
 
-object HighScoreModelupdater extends ModelUpdater(PlayState.inGameStates) {
+object HighScoreModelUpdater extends ModelUpdater(PlayState.inGameStates) {
   def update(model: Model): Model = {
     if (model.score > model.highScore) model.copy(highScore = model.score)
+    else model
+  }
+}
+
+// TODO - working here
+object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
+  def update(model: Model): Model = {
+    if (model.layers.homes.count(_.content == HomeContent.Frog) == 5)
+      model.copy(
+        level = model.level + 1,
+        score = model.score + 1000,
+        layers = model.layers.copy(
+          homes = (0 to 5).map(HomeFactory.create),
+          channels = Channel.channels(model.level + 1)
+        ),
+        frogPosition = Layers.initialFrogPosition,
+        levelStartTimeMs = System.currentTimeMillis(),
+        frogJumpTimer = 0,
+        frogFacing = Direction.Up
+      )
     else model
   }
 }

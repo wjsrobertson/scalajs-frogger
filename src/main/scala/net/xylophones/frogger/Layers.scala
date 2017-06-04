@@ -1,4 +1,5 @@
 package net.xylophones.frogger
+
 import net.xylophones.frogger.App.ctx
 import net.xylophones.frogger.Layers.darkBlue
 import org.scalajs.dom.CanvasRenderingContext2D
@@ -34,15 +35,15 @@ class ScoreLayer extends Layer(Config.gameWidth, Config.scoreHeight) {
   }
 
   def drawNumber(context: CanvasRenderingContext2D, endX: Int, y: Int, numtoDraw: Int): Unit = {
-      val digits = numtoDraw.toString.split("")
+    val digits = numtoDraw.toString.split("")
 
-      digits.reverse.zipWithIndex.foreach{ ni =>
-        val digit = ni._1.toInt
-        val sequence = ni._2
-        val sourceX = digit * tileSize
-        val writeX =  (endX-tileSize) - sequence * tileSize
+    digits.reverse.zipWithIndex.foreach { ni =>
+      val digit = ni._1.toInt
+      val sequence = ni._2
+      val sourceX = digit * tileSize
+      val writeX = (endX - tileSize) - sequence * tileSize
 
-        context.drawImage(nums.element, sourceX, 0, tileSize, tileSize, writeX, y, tileSize, tileSize)
+      context.drawImage(nums.element, sourceX, 0, tileSize, tileSize, writeX, y, tileSize, tileSize)
     }
   }
 }
@@ -57,13 +58,13 @@ class StatusLayer extends Layer(Config.gameWidth, Config.statusHeight) {
     context.strokeStyle = "#000000"
     context.fillRect(position.x, position.y, width, height)
 
-    (0 until model.lives).foreach{ life =>
+    (0 until model.lives).foreach { life =>
       val x = life * lifeImage.width
       context.drawImage(lifeImage.element, 0, 0, lifeImage.width, lifeImage.height, x + position.x, position.y, lifeImage.width, lifeImage.height)
     }
 
-    (0 until model.level).foreach{ level =>
-      val x = width - level * levelImage.width
+    (0 until model.level).foreach { level =>
+      val x = width - (level + 1) * levelImage.width
       context.drawImage(levelImage.element, 0, 0, levelImage.width, levelImage.height, x + position.x, position.y, levelImage.width, levelImage.height)
     }
   }

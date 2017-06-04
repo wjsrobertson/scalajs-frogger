@@ -50,7 +50,7 @@ case class Model(score: Int = 0,
 
     layers.channels zip channelsPos
   }
-  
+
   def homesWithPositions():  Seq[(Home, Vector)] =  layers.homes zip Layers.homesPositions
 }
 
@@ -103,15 +103,15 @@ object Direction {
 
 object HomeContent {
 
-  abstract sealed class Content
+  abstract sealed class Content(val char: Character)
 
-  case object Empty extends Content
+  case object Empty extends Content('W')
 
-  case object Frog extends Content
+  case object Frog extends Content('F')
 
-  case object Insect extends Content
+  case object Insect extends Content('B')
 
-  case object Alligator extends Content
+  case object Alligator extends Content('A')
 
 }
 

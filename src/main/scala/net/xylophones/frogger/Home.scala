@@ -66,14 +66,14 @@ object HomeFactory {
   }
 
   def create(id: Int): Home = {
-    new Home(id, getTiles('W'))
+    new Home(id, getTiles(HomeContent.Empty.char), HomeContent.Empty)
   }
 
   // TODO - replace with enum
-  def create(id: Int, contents: Character): Home = {
-    new Home(id, getTiles(contents))
+  def create(id: Int, content: HomeContent.Content): Home = {
+    new Home(id, getTiles(content.char), content)
   }
 }
 
-class Home(id: Int, tiles: Array[Array[Tile]])
+class Home(id: Int, tiles: Array[Array[Tile]], val content: HomeContent.Content)
   extends TiledLayer(new TiledImage(Image("img/top.png"), 8, 16), 3, 13, tiles)
