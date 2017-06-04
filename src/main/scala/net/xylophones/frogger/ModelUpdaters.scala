@@ -90,8 +90,8 @@ object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
 object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates) {
   def update(model: Model): Model = {
     if (model.frogDeathTimer == 1) {
-      if (model.lives == 0) {
-        model.copy(playState = PlayState.NotInPlay, frogDeathTimer = 0)
+      if (model.lives == 1) {
+        model.copy(playState = PlayState.NotInPlay, frogDeathTimer = 0, lives  = 0)
       } else {
         model.copy(lives = model.lives - 1, frogPosition = Layers.initialFrogPosition, frogDeathTimer = 0,
           playState = PlayState.InPlay, frogJumpTimer = 0, frogFacing = Direction.Up,

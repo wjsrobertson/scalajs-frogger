@@ -74,22 +74,24 @@ class TimeLayer extends Layer(Config.gameWidth, Config.timeHeight) {
 
   // TODO - clean this garbage up
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
-    val imageX = Config.gameWidth - Config.timeImageWidth
-
-    val usedRatio: Double = model.levelDurationMs().toDouble / Config.levelTimeLimitMs.toDouble
-    val remainingRatio: Double = 1 - usedRatio
-    val fullLength = imageX
-
-    val start = fullLength.toDouble * usedRatio
-    val w = fullLength.toDouble * remainingRatio.toDouble
-
     context.fillStyle = "#000000"
     context.strokeStyle = "#000000"
     context.fillRect(position.x, position.y, Config.gameWidth, Config.timeHeight)
 
-    context.fillStyle = "#00FF00"
-    context.strokeStyle = "#00FF00"
-    context.fillRect(start, position.y, w, Config.timeHeight)
+    val imageX = Config.gameWidth - Config.timeImageWidth
+
+    if (model.playState == PlayState.InPlay) {
+      val usedRatio: Double = model.levelDurationMs().toDouble / Config.levelTimeLimitMs.toDouble
+      val remainingRatio: Double = 1 - usedRatio
+      val fullLength = imageX
+
+      val start = fullLength.toDouble * usedRatio
+      val w = fullLength.toDouble * remainingRatio.toDouble
+
+      context.fillStyle = "#00FF00"
+      context.strokeStyle = "#00FF00"
+      context.fillRect(start, position.y, w, Config.timeHeight)
+    }
 
     context.drawImage(timeImage.element, 0, 0, timeImage.width, timeImage.height, imageX, position.y, timeImage.width, timeImage.height)
   }
@@ -97,11 +99,11 @@ class TimeLayer extends Layer(Config.gameWidth, Config.timeHeight) {
 
 class FrogLayer(val frog: Sprite, val deadFrog: Sprite) extends Layer(Config.frogWidth, Config.frogHeight) {
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit =
-    if (model.inDeathAnimation()) {
+    if (model.playState == PlayState.FrogDeathAnimation) {
       val ratio = model.frogDeathTimer.toDouble / Config.frogDeathTime.toDouble
-      val frame = Math.min((ratio * 4).floor, 3).toInt
+      val frame = 3 - Math.min((ratio * 4).floor, 3).toInt
       deadFrog.draw(ctx, model.frogPosition, frame)
-    } else if (model.inPlay()) {
+    } else if (model.playState == PlayState.InPlay) {
       frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
     }
 }
