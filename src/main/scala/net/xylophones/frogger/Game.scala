@@ -82,19 +82,19 @@ trait CellCoords {
   def row: Int
 }
 
-case class Tile(col: Int, row: Int, tileId: Int = 0)
+case class Tile(col: Int, row: Int, cellType: CellType.Type)
 
 class TiledImage(val image: Image, val tileWidth: Int, val tileHeight: Int)
 
 // TODO - rows and columns should be in consistent order throughout codebase
-class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, val columns: Int, contents: Array[Array[Tile]]) extends Layer {
+class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, val columns: Int, val tiles: Array[Array[Tile]]) extends Layer {
   protected val img = tileImage.image.element
 
   override val height = rows * tileImage.tileHeight
 
   override val width = columns * tileImage.tileWidth
 
-  def getCell(row: Int, column: Int) = contents(row)(column)
+  def getCell(row: Int, column: Int) = tiles(row)(column)
 
   lazy val rectangles: Seq[Rectangle with CellCoords] = for {
     c <- 0 until columns
@@ -109,7 +109,7 @@ class TiledLayer(protected val tileImage: TiledImage, protected val rows: Int, v
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model) = {
     for (row <- 0 until rows) {
       for (column <- 0 until columns) {
-        val tile = contents(row)(column)
+        val tile = tiles(row)(column)
 
         val tileCol = tile.col
         val tileRow = tile.row

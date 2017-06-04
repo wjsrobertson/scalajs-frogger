@@ -34,7 +34,8 @@ case class Model(score: Int = 0,
                  positions: Seq[Vector],
                  layers: Layers,
                  frogDeathTimer: Int = 0,
-                 playState: PlayState.State = PlayState.InPlay) {
+                 playState: PlayState.State = PlayState.InPlay,
+                 homeContents: Seq[HomeContent.Content] = (0 to 5).map(_ => HomeContent.Empty)) {
 
   def inPlay() = lives > 0
 
@@ -42,15 +43,15 @@ case class Model(score: Int = 0,
 
   def levelDurationMs() = System.currentTimeMillis() - levelStartTimeMs
 
-  def channelsWithPositions() = {
+  def channelsWithPositions(): Seq[(Channel, Vector)] = {
     val channelsPos: Seq[(Vector)] = (layers.all zip positions)
       .filter(_._1.isInstanceOf[Channel])
       .map(_._2)
 
     layers.channels zip channelsPos
   }
-
-  def initialFrogPosition(): Vector = ???
+  
+  def homesWithPositions():  Seq[(Home, Vector)] =  layers.homes zip Layers.homesPositions
 }
 
 case class Layers(scoreTitle: ScoreTitleLayer,
@@ -84,7 +85,6 @@ object PlayState {
   val inGameStates = Seq(InPlay, FrogDeathAnimation)
 
   val all = Seq(InPlay, FrogDeathAnimation, NotInPlay)
-
 }
 
 object Direction {
@@ -98,6 +98,20 @@ object Direction {
   case object Left extends Dir(2, Vector(-1, 0))
 
   case object Right extends Dir(3, Vector(1, 0))
+
+}
+
+object HomeContent {
+
+  abstract sealed class Content
+
+  case object Empty extends Content
+
+  case object Frog extends Content
+
+  case object Insect extends Content
+
+  case object Alligator extends Content
 
 }
 
@@ -131,12 +145,13 @@ object Layers {
   private val bottom = Seq(statusLayer, timeLayer)
   private val bottomPositions = VerticalCompositeLayout.layout(Vector(0, topHeight + channelsHeight), bottom)
 
-  private val homes = (0 to 5).map(HomeFactory.create(_))
-  private val homesPositions = HorizontalCompositeLayout.layout(topPositions(3), homes)
+  private val homes = (0 to 5).map(HomeFactory.create)
   private val layers =
     new Layers(scoreTitle, scoreLayer, scoreSpace, homePlaceholder, frog, statusLayer, timeLayer, channels, homes, frogLayer)
 
   val initialFrogPosition = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2)
+
+  val homesPositions = HorizontalCompositeLayout.layout(topPositions(3), homes)
 
   def allPositions(channelPositions: Seq[Vector]) =
     topPositions ++ channelPositions ++ bottomPositions ++ homesPositions

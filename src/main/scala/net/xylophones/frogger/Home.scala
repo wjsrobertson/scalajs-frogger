@@ -6,11 +6,11 @@ object HomeFactory {
   val deadlyMask =
     """
       |1111111111111000000000000
-      |1110000001111111111111111
-      |1110000001111111111111111
+      |1110000001111111100001111
+      |1110000001111111100001111
     """.stripMargin
 
-  val isDeadly = deadlyMask
+  val isDeadly: Map[Int, Boolean] = deadlyMask
     .filter(c => c == '0' || c == '1')
     .zipWithIndex
     .map(t => t._2 -> (t._1 == '1')).toMap
@@ -18,16 +18,20 @@ object HomeFactory {
   val typeMask =
     """
       |HHHHHHHHHHHHH------------
-      |HHHHWWWWHHHHHFFFFBBBBAAAA
-      |HHHHWWWWHHHHHFFFFBBBBAAAA
+      |HHHHWWWWHHHHHFFFFIIIIAAAA
+      |HHHHWWWWHHHHHFFFFIIIIAAAA
     """.stripMargin.split("\n").map(_.trim).filter(_.length != 0)
 
-  def getImageTiles(v: Char): Array[HomeCell] = {
+  def getImageTiles(v: Char): Array[Tile] = {
     typeMask.zipWithIndex
       .map { case (line: String, row: Int) => (row, line.zipWithIndex) }
       .flatMap { case (row: Int, c: Seq[(Char, Int)]) => c map { x => (row, x._2, x._1) } }
       .filter(_._3 == v)
-      .map { case (row, col, _) => new HomeCell(Tile(col, row)) }
+      .map { case (row, col, _) =>
+        val cellDeadly = Set('F', 'A').contains(v)
+        val cellType = if (cellDeadly) CellType.Deadly else CellType.Safe
+        Tile(col, row, cellType)
+      }
   }
 
   private val free =
@@ -37,10 +41,11 @@ object HomeFactory {
       |HHHHXXXXHHHHH
     """.stripMargin.split("\n").map(_.trim).filter(_.length != 0)
 
-  def getTiles(xChar: Char): Array[Array[HomeCell]] = {
+  def getTiles(xChar: Char): Array[Array[Tile]] = {
     val homeTiles = getImageTiles('H')
     val midTiles = getImageTiles(xChar)
 
+    // TODO - get rid of these vars
     var h = -1
     var x = -1
 
@@ -60,10 +65,9 @@ object HomeFactory {
   }
 
   def create(id: Int): Home = {
-    new Home(id, getTiles('W'))
+    new Home(id, getTiles('A'))
   }
 }
 
-class HomeCell(val tile: Tile)
-
-class Home(id: Int, tiles: Array[Array[HomeCell]]) extends TiledLayer(new TiledImage(Image("img/top.png"), 8, 16), 3, 13, tiles.map { row => row.map { cell => cell.tile } })
+class Home(id: Int, tiles: Array[Array[Tile]])
+  extends TiledLayer(new TiledImage(Image("img/top.png"), 8, 16), 3, 13, tiles)

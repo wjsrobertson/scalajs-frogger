@@ -1,7 +1,7 @@
 package net.xylophones.frogger
 
-class Channel(val tiles: Array[Cell.CellVal], val velocity: Int, tiledImage: TiledImage)
-  extends TiledLayer(tiledImage, 1, tiles.length, Array(tiles.map(t => Tile(t.id, 0)))) {
+class Channel(tiles: Array[Array[Tile]], val velocity: Int, tiledImage: TiledImage)
+  extends TiledLayer(tiledImage, 1, tiles(0).length, tiles){
 }
 
 object Channel {
@@ -12,9 +12,13 @@ object Channel {
       .map(_.trim)
       .filterNot(_.length == 0)
       .map { c => c.split("\t") }
-      .map ( x => (x(0).toInt, x(1)) )
-      .map { case (velocity, contents) => (velocity.toInt, (contents * 2).split("").map(cell)) }
-      .map { case (velocity, cells) => new Channel(cells, velocity, tiledImage) }
+      .map(x => (x(0).toInt, x(1)))
+      .map { case (velocity, contents) =>
+        val (vel, cells) = (velocity.toInt, (contents * 2).split("").map(cell))
+        val tiles = cells.map(c => Tile(c.id, 0, c.cellType))
+        (vel, tiles)
+      }
+      .map { case (velocity, cells) => new Channel(Array(cells), velocity, tiledImage) }
   }
 
   private val cell = Map(
@@ -112,37 +116,36 @@ object Channel {
 
 // TODO - maybe pass in tuples for this
 object ChannelCollisionChecker {
-
-  def isDeadlyCollision(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
+  def isDeadlyCollision(channel: TiledLayer, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
     channel.rectangles
       .filter(r => r.intersects(chPosition, sprite, sPosition))
-      .map(r => channel.tiles(r.col))
+      .map(r => channel.tiles(r.row)(r.col))
       .map(_.cellType)
       .contains(CellType.Deadly)
   }
 
-  def isLanding(channel: Channel, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
+  def isLanding(channel: TiledLayer, chPosition: Vector, sprite: Sprite, sPosition: Vector) = {
     channel.rectangles
       .filter(r => r.contains(chPosition, sprite.midPoint.add(sPosition)))
-      .map(r => channel.tiles(r.col))
+      .map(r => channel.tiles(r.row)(r.col))
       .map(_.cellType)
       .contains(CellType.Moving)
   }
 }
 
 object CellType extends Enumeration {
-  case class CellTypeVal(override val id: Int) extends super.Val(id)
 
-  val Moving = CellTypeVal(0)
-  val Deadly = CellTypeVal(1)
-  val Safe = CellTypeVal(2)
+  case class Type(override val id: Int) extends super.Val(id)
+
+  val Moving = Type(0)
+  val Deadly = Type(1)
+  val Safe = Type(2)
 }
 
 object Cell extends Enumeration {
 
-  case class CellVal(override val id: Int, cellType: CellType.CellTypeVal) extends super.Val(id)
+  case class CellVal(override val id: Int, cellType: CellType.Type) extends super.Val(id)
 
-  //val Empty = CellVal(0, CellType.Safe)
   val Border = CellVal(0, CellType.Safe)
   val River = CellVal(1, CellType.Deadly)
   val Road = CellVal(2, CellType.Safe)
