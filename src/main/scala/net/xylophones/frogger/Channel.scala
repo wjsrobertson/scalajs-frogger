@@ -129,7 +129,7 @@ object ChannelCollisionChecker {
       .filter(r => r.contains(chPosition, sprite.midPoint.add(sPosition)))
       .map(r => channel.tiles(r.row)(r.col))
       .map(_.cellType)
-      .contains(CellType.Moving)
+      .contains(CellType.Landable)
   }
 }
 
@@ -137,7 +137,7 @@ object CellType extends Enumeration {
 
   case class Type(override val id: Int) extends super.Val(id)
 
-  val Moving = Type(0)
+  val Landable = Type(0)
   val Deadly = Type(1)
   val Safe = Type(2)
 }
@@ -152,16 +152,16 @@ object Cell extends Enumeration {
   val Car1 = CellVal(3, CellType.Deadly)
   val Car2 = CellVal(4, CellType.Deadly)
   val Car3 = CellVal(5, CellType.Deadly)
-  val LogLeft = CellVal(6, CellType.Moving)
-  val LogMiddle = CellVal(7, CellType.Moving)
-  val LogRight = CellVal(8, CellType.Moving)
+  val LogLeft = CellVal(6, CellType.Landable)
+  val LogMiddle = CellVal(7, CellType.Landable)
+  val LogRight = CellVal(8, CellType.Landable)
   val LorryLeft = CellVal(9, CellType.Deadly)
   val LorryRight = CellVal(10, CellType.Deadly)
   val Tractor = CellVal(11, CellType.Deadly)
-  val Turtle = CellVal(12, CellType.Moving)
-  val AlligatorTail = CellVal(13, CellType.Moving)
-  val AlligatorMiddle = CellVal(14, CellType.Moving)
-  val AlligatorHead = CellVal(15, CellType.Moving)
+  val Turtle = CellVal(12, CellType.Landable)
+  val AlligatorTail = CellVal(13, CellType.Landable)
+  val AlligatorMiddle = CellVal(14, CellType.Landable)
+  val AlligatorHead = CellVal(15, CellType.Landable)
   val AlligatorOpen = CellVal(16, CellType.Deadly)
 
   def fromIndex(index: Int): Option[Cell.CellVal] = values.find(v => v.id == index).map(_.asInstanceOf[Cell.CellVal])

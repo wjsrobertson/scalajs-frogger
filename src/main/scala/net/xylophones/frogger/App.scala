@@ -29,8 +29,6 @@ object App extends JSApp {
 
       loop(System.currentTimeMillis(), newModel)
     }
-
-    println(s"s: ${model.playState}")
   }
 
   private def updateModel(model: Model): Model = {

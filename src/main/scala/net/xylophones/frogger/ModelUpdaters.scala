@@ -11,7 +11,7 @@ abstract class ModelUpdater(states: Seq[PlayState.State]) {
 
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer, FrogCollisionChecker,
-    NextLifeUpdater, HighScoreModelupdater)
+    NextLifeUpdater, HighScoreModelupdater, FrogHomeLander)
 }
 
 object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
@@ -87,11 +87,33 @@ object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
   }
 }
 
+object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
+  import ChannelCollisionChecker._
+
+  def update(model: Model): Model = model
+    .homesWithPositions()
+    .zipWithIndex
+    .find(hpi => isLanding(hpi._1._1, hpi._1._2, model.layers.frog, model.frogPosition))
+    .map { case ((h, p), i) =>
+      val newHome = HomeFactory.create(i, 'F')
+      val newHomes = model.layers.homes.patch(i, Seq(newHome), 1)
+      // TODO - add on score for unused seconds
+      model.copy(layers = model.layers.copy(
+        homes = newHomes),
+        score = model.score + 50,
+        frogPosition = Layers.initialFrogPosition,
+        levelStartTimeMs = System.currentTimeMillis(),
+        frogJumpTimer = 0,
+        frogFacing = Direction.Up
+      )
+    }.getOrElse(model)
+}
+
 object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates) {
   def update(model: Model): Model = {
     if (model.frogDeathTimer == 1) {
       if (model.lives == 1) {
-        model.copy(playState = PlayState.NotInPlay, frogDeathTimer = 0, lives  = 0)
+        model.copy(playState = PlayState.NotInPlay, frogDeathTimer = 0, lives = 0)
       } else {
         model.copy(lives = model.lives - 1, frogPosition = Layers.initialFrogPosition, frogDeathTimer = 0,
           playState = PlayState.InPlay, frogJumpTimer = 0, frogFacing = Direction.Up,
@@ -106,7 +128,7 @@ object TimerUpdater extends ModelUpdater(PlayState.inGameStates) {
     if (model.frogDeathTimer > 1)
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
     else if (model.levelDurationMs() > Config.levelTimeLimitMs && model.frogDeathTimer == 0)
-      model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation) // make it so you don't have to set these at same time
+           model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation) // make it so you don't have to set these at same time
     else model
   }
 }

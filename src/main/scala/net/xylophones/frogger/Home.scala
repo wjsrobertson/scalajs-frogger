@@ -22,14 +22,15 @@ object HomeFactory {
       |HHHHWWWWHHHHHFFFFIIIIAAAA
     """.stripMargin.split("\n").map(_.trim).filter(_.length != 0)
 
+  // TODO - a bit unwieldy this is
   def getImageTiles(v: Char): Array[Tile] = {
     typeMask.zipWithIndex
       .map { case (line: String, row: Int) => (row, line.zipWithIndex) }
       .flatMap { case (row: Int, c: Seq[(Char, Int)]) => c map { x => (row, x._2, x._1) } }
       .filter(_._3 == v)
       .map { case (row, col, _) =>
-        val cellDeadly = Set('F', 'A').contains(v)
-        val cellType = if (cellDeadly) CellType.Deadly else CellType.Safe
+        val cellDeadly = Set('F', 'A', 'H').contains(v)
+        val cellType = if (cellDeadly) CellType.Deadly else CellType.Landable
         Tile(col, row, cellType)
       }
   }
@@ -65,7 +66,12 @@ object HomeFactory {
   }
 
   def create(id: Int): Home = {
-    new Home(id, getTiles('A'))
+    new Home(id, getTiles('W'))
+  }
+
+  // TODO - replace with enum
+  def create(id: Int, contents: Character): Home = {
+    new Home(id, getTiles(contents))
   }
 }
 
