@@ -1,7 +1,6 @@
 package net.xylophones.frogger
 
 import net.xylophones.frogger.App.ctx
-import net.xylophones.frogger.Layers.darkBlue
 import org.scalajs.dom.CanvasRenderingContext2D
 
 class ScoreTitleLayer extends Layer(Config.gameWidth, Config.scoreTitleHeight) {

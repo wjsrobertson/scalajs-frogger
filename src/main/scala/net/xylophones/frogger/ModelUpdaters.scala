@@ -4,7 +4,7 @@ abstract class ModelUpdater(states: Seq[PlayState.State]) {
   def updateIfApplicable(model: Model): Model =
     if (states.contains(model.playState)) update(model)
     else model
-  
+
   protected def update(model: Model): Model
 }
 
@@ -206,7 +206,9 @@ object NewGameUpdater extends ModelUpdater(PlayState.all) {
       levelStartTimeMs = System.currentTimeMillis(),
       frogJumpTimer = 0,
       frogFacing = Direction.Up,
-      lives = 3
+      lives = 3,
+      frogDeathTimer = 0,
+      playState = PlayState.InPlay
     )
     else model
   }

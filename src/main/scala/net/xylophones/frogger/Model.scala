@@ -21,6 +21,9 @@ object Config {
   val scoreHeight = 16
   val levelTimeLimitMs = 60000
   val pointsForJump = 10
+  val darkBlue = "#00002A"
+  val black = "#000000"
+  val green = "#00FF00"
 }
 
 case class Model(score: Int = 0,
@@ -117,19 +120,14 @@ object HomeContent {
 
 // TODO - do away with this nasty object
 object Layers {
-  private val darkBlue = "#00002A"
-  private val black = "#000000"
-  private val green = "#00FF00"
-  private val gameWidth = 32 * 16
-
   private val scoreTitle = new ScoreTitleLayer
   private val scoreLayer = new ScoreLayer
-  private val scoreSpace = new BackgroundLayer(32 * 16, 16, darkBlue)
-  private val homePlaceholder = new BackgroundLayer(32 * 16, 48, green)
+  private val scoreSpace = new BackgroundLayer(32 * 16, 16, Config.darkBlue)
+  private val homePlaceholder = new BackgroundLayer(32 * 16, 48, Config.green)
 
   private val frog = new Sprite(Image("img/frog.png"), 22)
   private val deadFrog = new Sprite(Image("img/deadfrog.png"), 22)
-  val frogLayer = new FrogLayer(frog, deadFrog)
+  private val frogLayer = new FrogLayer(frog, deadFrog)
 
   private val statusLayer = new StatusLayer
   private val timeLayer = new TimeLayer
@@ -146,18 +144,17 @@ object Layers {
   private val bottomPositions = VerticalCompositeLayout.layout(Vector(0, topHeight + channelsHeight), bottom)
 
   private val homes = (0 to 5).map(HomeFactory.create)
-  private val layers =
-    new Layers(scoreTitle, scoreLayer, scoreSpace, homePlaceholder, frog, statusLayer, timeLayer, channels, homes, frogLayer)
-
-  val initialFrogPosition = channelPositions.last.add((gameWidth - frog.width) / 2, (32 - 22) / 2)
+  private val layers = new Layers(scoreTitle, scoreLayer, scoreSpace, homePlaceholder, frog, statusLayer, timeLayer,
+    channels, homes, frogLayer)
 
   val homesPositions = HorizontalCompositeLayout.layout(topPositions(3), homes)
+
+  val initialFrogPosition = channelPositions.last.add((Config.gameWidth - frog.width) / 2, (32 - 22) / 2)
 
   def allPositions(channelPositions: Seq[Vector]) =
     topPositions ++ channelPositions ++ bottomPositions ++ homesPositions
 
   def initialModel() = {
-
     Model(positions = allPositions(channelPositions), frogPosition = initialFrogPosition, layers = layers)
   }
 }
