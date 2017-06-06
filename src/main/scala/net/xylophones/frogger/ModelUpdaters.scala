@@ -1,26 +1,25 @@
 package net.xylophones.frogger
 
 abstract class ModelUpdater(states: Seq[PlayState.State]) {
-  def updateIfApplicable(model: Model): Model = {
+  def updateIfApplicable(model: Model): Model =
     if (states.contains(model.playState)) update(model)
     else model
-  }
-
+  
   protected def update(model: Model): Model
 }
 
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer,
-    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater)
+    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater, NewGameUpdater)
 }
 
-object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
+object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates) {
   def update(model: Model): Model = {
     val userDirection = UserInput.direction()
 
     val jumpDirection: Option[Direction.Dir] =
       if (model.frogJumpTimer > 0) Some(model.frogFacing)
-      else if (userDirection.isDefined) userDirection
+      else if (userDirection.isDefined && model.playState == PlayState.InPlay) userDirection
       else None
 
     jumpDirection match {
@@ -174,7 +173,6 @@ object HighScoreModelUpdater extends ModelUpdater(PlayState.inGameStates) {
   }
 }
 
-// TODO - working here
 object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
   def update(model: Model): Model = {
     if (model.layers.homes.count(_.content == HomeContent.Frog) == 5)
@@ -190,6 +188,26 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
         frogJumpTimer = 0,
         frogFacing = Direction.Up
       )
+    else model
+  }
+}
+
+// TODO - common with code above execpt lives
+object NewGameUpdater extends ModelUpdater(PlayState.all) {
+  def update(model: Model): Model = {
+    if (UserInput.newGame()) model.copy(
+      level = 1,
+      score = 0,
+      layers = model.layers.copy(
+        homes = (0 to 5).map(HomeFactory.create),
+        channels = Channel.channels(1)
+      ),
+      frogPosition = Layers.initialFrogPosition,
+      levelStartTimeMs = System.currentTimeMillis(),
+      frogJumpTimer = 0,
+      frogFacing = Direction.Up,
+      lives = 3
+    )
     else model
   }
 }
