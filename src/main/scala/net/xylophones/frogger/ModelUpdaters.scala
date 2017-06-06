@@ -10,8 +10,8 @@ abstract class ModelUpdater(states: Seq[PlayState.State]) {
 }
 
 object ModelUpdaters {
-  val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer, FrogCollisionChecker,
-    NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater)
+  val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer,
+    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater)
 }
 
 object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
@@ -23,8 +23,7 @@ object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
       else if (userDirection.isDefined) userDirection
       else None
 
-    // TODO - can probably map to Model rather than using tuple
-    val (fp, ff, ft, sc) = jumpDirection match {
+    jumpDirection match {
       case Some(d) =>
         val scale = 8
         val newFrogPosition = model.frogPosition.add(d.vector.scale(scale))
@@ -32,11 +31,13 @@ object FrogMoveUpdater extends ModelUpdater(Seq(PlayState.InPlay)) {
         val newFrogTimer = if (model.frogJumpTimer >= 1) model.frogJumpTimer - 1 else 3
         val newScore = if (newFrogTimer == 0) model.score + Config.pointsForJump else model.score
 
-        (newFrogPosition, newFrogDirection, newFrogTimer, newScore)
-      case _ => (model.frogPosition, model.frogFacing, model.frogJumpTimer, model.score)
+        model.copy(
+          frogPosition = newFrogPosition,
+          frogFacing = newFrogDirection,
+          frogJumpTimer = newFrogTimer,
+          score = newScore)
+      case _ => model
     }
-
-    model.copy(frogPosition = fp, frogFacing = ff, frogJumpTimer = ft, score = sc)
   }
 }
 
@@ -88,6 +89,7 @@ object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
 }
 
 object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
+
   import ChannelCollisionChecker._
 
   def update(model: Model): Model = model
