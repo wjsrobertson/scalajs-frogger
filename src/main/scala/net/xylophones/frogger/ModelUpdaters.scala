@@ -76,12 +76,13 @@ object FrogChannelLander extends ModelUpdater(PlayState.inGameStates) {
 
 object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
   def update(model: Model): Model = {
+    import ChannelCollisionChecker._
 
-    val isDeadlyCollision =
-      model.channelsWithPositions().exists(chp => ChannelCollisionChecker.isDeadlyCollision(chp._1, chp._2, model.layers.frog, model.frogPosition)) ||
-        model.homesWithPositions().exists(home => ChannelCollisionChecker.isDeadlyCollision(home._1, home._2, model.layers.frog, model.frogPosition))
+    val deadlyCollision =
+      model.channelsWithPositions().exists(cp => isDeadlyCollision(cp._1, cp._2, model.layers.frog, model.frogPosition)) ||
+        model.homesWithPositions().exists(hp => isDeadlyCollision(hp._1, hp._2, model.layers.frog, model.frogPosition))
 
-    if (isDeadlyCollision)
+    if (deadlyCollision)
       model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation)
     else model
   }

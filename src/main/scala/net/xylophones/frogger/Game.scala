@@ -159,14 +159,6 @@ object VerticalCompositeLayout {
   }
 }
 
-class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h) {
-  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model) = {
-    context.fillStyle = colour
-    context.strokeStyle = colour
-    context.fillRect(position.x, position.y, width, height)
-  }
-}
-
 class Sprite(image: Image, frameWidth: Int) extends Rectangular {
   override val padding = Math.max(1, frameWidth / 4)
 

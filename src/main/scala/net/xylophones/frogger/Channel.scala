@@ -133,6 +133,7 @@ object ChannelCollisionChecker {
   }
 }
 
+// TODO - use case class instead of Enumeration
 object CellType extends Enumeration {
 
   case class Type(override val id: Int) extends super.Val(id)
@@ -142,6 +143,7 @@ object CellType extends Enumeration {
   val Safe = Type(2)
 }
 
+// TODO - use case class instead of Enumeration
 object Cell extends Enumeration {
 
   case class CellVal(override val id: Int, cellType: CellType.Type) extends super.Val(id)

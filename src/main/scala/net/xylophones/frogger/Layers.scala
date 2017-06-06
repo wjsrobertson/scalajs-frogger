@@ -107,3 +107,11 @@ class FrogLayer(val frog: Sprite, val deadFrog: Sprite) extends Layer(Config.fro
       frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
     }
 }
+
+class BackgroundLayer(val w: Int, val h: Int, colour: String) extends Layer(w, h) {
+  override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model) = {
+    context.fillStyle = colour
+    context.strokeStyle = colour
+    context.fillRect(position.x, position.y, width, height)
+  }
+}
