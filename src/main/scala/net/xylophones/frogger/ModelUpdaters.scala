@@ -29,12 +29,15 @@ object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates) {
         val newFrogDirection = d
         val newFrogTimer = if (model.frogJumpTimer >= 1) model.frogJumpTimer - 1 else 3
         val newScore = if (newFrogTimer == 0) model.score + Config.pointsForJump else model.score
+        val jumpSound = if (newFrogTimer == 0) Seq(Sounds.Jump) else Seq.empty
 
         model.copy(
           frogPosition = newFrogPosition,
           frogFacing = newFrogDirection,
           frogJumpTimer = newFrogTimer,
-          score = newScore)
+          score = newScore,
+          sounds = model.sounds ++ jumpSound
+        )
       case _ => model
     }
   }
@@ -83,7 +86,7 @@ object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
         model.homesWithPositions().exists(hp => isDeadlyCollision(hp._1, hp._2, model.layers.frog, model.frogPosition))
 
     if (deadlyCollision)
-      model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation)
+      model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation, sounds = model.sounds :+ Sounds.DieInWater)
     else model
   }
 }
@@ -108,7 +111,8 @@ object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
         frogPosition = Layers.initialFrogPosition,
         levelStartTimeMs = System.currentTimeMillis(),
         frogJumpTimer = 0,
-        frogFacing = Direction.Up
+        frogFacing = Direction.Up,
+        sounds = model.sounds :+ Sounds.Home
       )
     }.getOrElse(model)
 }
@@ -196,21 +200,24 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
 // TODO - common with code above execpt lives
 object NewGameUpdater extends ModelUpdater(PlayState.all) {
   def update(model: Model): Model = {
-    if (UserInput.newGame()) model.copy(
-      level = 1,
-      score = 0,
-      layers = model.layers.copy(
-        homes = (0 to 5).map(HomeFactory.create),
-        channels = Channel.channels(1)
-      ),
-      frogPosition = Layers.initialFrogPosition,
-      levelStartTimeMs = System.currentTimeMillis(),
-      frogJumpTimer = 0,
-      frogFacing = Direction.Up,
-      lives = 3,
-      frogDeathTimer = 0,
-      playState = PlayState.InPlay
-    )
+    if (UserInput.newGame()) {
+      model.copy(
+        level = 1,
+        score = 0,
+        layers = model.layers.copy(
+          homes = (0 to 5).map(HomeFactory.create),
+          channels = Channel.channels(1)
+        ),
+        frogPosition = Layers.initialFrogPosition,
+        levelStartTimeMs = System.currentTimeMillis(),
+        frogJumpTimer = 0,
+        frogFacing = Direction.Up,
+        lives = 3,
+        frogDeathTimer = 0,
+        playState = PlayState.InPlay,
+        sounds = model.sounds :+ Sounds.LadyFrog
+      )
+    }
     else model
   }
 }

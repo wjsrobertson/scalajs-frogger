@@ -38,7 +38,8 @@ case class Model(score: Int = 0,
                  layers: Layers,
                  frogDeathTimer: Int = 0,
                  playState: PlayState.State = PlayState.InPlay,
-                 homeContents: Seq[HomeContent.Content] = (0 to 5).map(_ => HomeContent.Empty)) {
+                 homeContents: Seq[HomeContent.Content] = (0 to 5).map(_ => HomeContent.Empty),
+                 sounds: Seq[Sounds.Sound] = Seq()) {
 
   def inPlay() = lives > 0
 
@@ -54,7 +55,7 @@ case class Model(score: Int = 0,
     layers.channels zip channelsPos
   }
 
-  def homesWithPositions():  Seq[(Home, Vector)] =  layers.homes zip Layers.homesPositions
+  def homesWithPositions(): Seq[(Home, Vector)] = layers.homes zip Layers.homesPositions
 }
 
 case class Layers(scoreTitle: ScoreTitleLayer,

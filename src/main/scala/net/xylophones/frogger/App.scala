@@ -32,9 +32,13 @@ object App extends JSApp {
   }
 
   private def updateModel(model: Model): Model = {
-    ModelUpdaters.updaters.foldLeft(model) {
+    val newModel = ModelUpdaters.updaters.foldLeft(model) {
       (updatedModel: Model, updater: ModelUpdater) => updater.updateIfApplicable(updatedModel)
     }
+
+    for (s <- newModel.sounds) {SoundPlayer.play(s)}
+
+    newModel.copy(sounds = Seq())
   }
 
   def draw(model: Model) = {
