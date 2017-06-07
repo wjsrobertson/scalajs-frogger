@@ -7,6 +7,7 @@ scalaJSUseMainModuleInitializer := true
 relativeSourceMaps := true
 
 libraryDependencies += "org.scala-js" %%% "scalajs-dom" % "0.9.1"
+libraryDependencies += "com.github.benhutchison" %%% "gesture" % "0.3"
 
 jsDependencies += RuntimeDOM
 
