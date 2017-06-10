@@ -112,7 +112,7 @@ object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
         levelStartTimeMs = System.currentTimeMillis(),
         frogJumpTimer = 0,
         frogFacing = Direction.Up,
-        sounds = model.sounds :+ Sounds.Home
+        sounds = model.sounds :+ Sounds.Home :+ Sounds.soundForHome(h.id)
       )
     }.getOrElse(model)
 }
@@ -215,7 +215,7 @@ object NewGameUpdater extends ModelUpdater(PlayState.all) {
         lives = 3,
         frogDeathTimer = 0,
         playState = PlayState.InPlay,
-        sounds = model.sounds :+ Sounds.LadyFrog
+        sounds = model.sounds :+ Sounds.Theme
       )
     }
     else model
