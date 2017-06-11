@@ -50,8 +50,8 @@ object App extends JSApp {
   }
 
   def addCanvas(): Unit = {
-    canvas.width = 512
-    canvas.height = (0.95 * dom.window.innerHeight).toInt
+    canvas.width = Config.gameWidth
+    canvas.height = Config.gameHeight
     document.body.appendChild(canvas)
   }
 }
