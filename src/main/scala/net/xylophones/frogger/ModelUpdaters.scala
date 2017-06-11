@@ -1,5 +1,7 @@
 package net.xylophones.frogger
 
+import scala.util.Random
+
 abstract class ModelUpdater(states: PlayState.State*) {
   def updateIfApplicable(model: Model): Model =
     if (states.contains(model.playState)) update(model)
@@ -10,7 +12,8 @@ abstract class ModelUpdater(states: PlayState.State*) {
 
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer,
-    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, FrogRestartAfterHomePauseUpdater, NextLevelUpdater, NewGameUpdater)
+    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, FrogRestartAfterHomePauseUpdater,
+    NextLevelUpdater, NewGameUpdater, HomeTimerUpdater, HomeContentRemover, HomeContentsUpdater)
 }
 
 object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
@@ -98,13 +101,12 @@ object FrogHomeLander extends ModelUpdater(PlayState.InPlay) {
   def update(model: Model): Model = model
     .homesWithPositions()
     .zipWithIndex
-    .find(hpi => isLanding(hpi._1._1, hpi._1._2, model.layers.frog, model.frogPosition))
-    .map { case ((h, p), i) =>
+    .find { case ((h, p), _) =>
+      isLanding(h, p, model.layers.frog, model.frogPosition)
+    }
+    .map { case ((h, _), i) =>
       val newHome = HomeFactory.create(i, HomeContent.Frog)
       val newHomes = model.layers.homes.patch(i, Seq(newHome), 1)
-      // TODO - add on score for unused seconds
-      // TODO - a lot of this "reset" values are common to other ModelUpdaters - maybe factor out?
-      // TODO - no magic values
       model.copy(
         layers = model.layers.copy(homes = newHomes),
         score = model.score + Config.pointsForReachingHome + model.timeRemainingSecs() * Config.pointsForUnusedSecond,
@@ -214,7 +216,7 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
     if (model.layers.homes.count(_.content == HomeContent.Frog) == 5)
       model.copy(
         level = model.level + 1,
-        score = model.score + 1000,
+        score = model.score + Config.pointsForCompletingLevel,
         layers = model.layers.copy(
           homes = (0 to 5).map(HomeFactory.create),
           channels = Channel.channels(model.level + 1)
@@ -223,13 +225,13 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
         levelStartTimeMs = System.currentTimeMillis(),
         frogJumpTimer = 0,
         frogFacing = Direction.Up,
+        homeTimers = Map(),
         lowOnTime = false
       )
     else model
   }
 }
 
-// TODO - common with code above execpt lives
 object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
   def update(model: Model): Model = {
     if (UserInput.newGame()) {
@@ -248,6 +250,7 @@ object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
         frogDeathTimer = 0,
         playState = PlayState.InPlay,
         sounds = model.sounds :+ Sounds.Theme,
+        homeTimers = Map(),
         lowOnTime = false
       )
     }
@@ -255,7 +258,65 @@ object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
   }
 }
 
-// TODO - home animations
+object HomeTimerUpdater extends ModelUpdater(PlayState.all: _*) {
+  def update(model: Model): Model = {
+    if (model.homeTimers.nonEmpty) {
+      val newTimers = model.homeTimers.map { case (id, t) => id -> (t + 1) }
+
+      println(s"old: ${model.homeTimers} / new: $newTimers")
+
+      model.copy(homeTimers = newTimers)
+    } else model
+  }
+}
+
+object HomeContentRemover extends ModelUpdater(PlayState.all: _*) {
+  def update(model: Model): Model = {
+    val alligatorsToRemove = model.layers.homes
+      .filter(h => h.content == HomeContent.Alligator)
+      .filter(h => model.homeTimers.getOrElse(h.id, 0) > Config.homeAlligatorStayTimeTicks)
+
+    val insectsToRemove = model.layers.homes
+      .filter(h => h.content == HomeContent.Insect)
+      .filter(h => model.homeTimers.getOrElse(h.id, 0) > Config.homeInsectStayTimeTicks)
+
+    val updatedHomes: Map[Int, Home] = (alligatorsToRemove ++ insectsToRemove).map { h =>
+      HomeFactory.create(h.id, HomeContent.Empty)
+    }.map(h => h.id -> h).toMap
+
+    if (updatedHomes.nonEmpty) {
+      val newHomes = model.layers.homes.map(h => updatedHomes.getOrElse(h.id, h))
+      val newTimers = model.homeTimers.filterNot { case (hid, _) => newHomes.map(_.id).contains(hid) }
+      model.copy(
+        homeTimers = newTimers,
+        layers = model.layers.copy(homes = newHomes)
+      )
+    } else model
+  }
+}
+
+object HomeContentsUpdater extends ModelUpdater(PlayState.all: _*) {
+  val rand = new Random()
+
+  def update(model: Model): Model = {
+    val aligatorPresent = model.layers.homes.exists(_.content == HomeContent.Alligator)
+    val appear = !aligatorPresent && rand.nextInt(5000) < 10
+
+    if (appear) {
+      val emptyHomes = model.layers.homes.filter(_.content == HomeContent.Empty).zipWithIndex
+      val appearIn = rand.nextInt(emptyHomes.size -1)
+      val home = emptyHomes(appearIn)._1
+
+      val newHome = HomeFactory.create(home.id, HomeContent.Alligator)
+      val newHomes = model.layers.homes.patch(home.id, Seq(newHome), 1)
+
+      model.copy(
+        homeTimers = model.homeTimers + (home.id -> 1),
+        layers = model.layers.copy(homes = newHomes)
+      )
+    } else model
+  }
+}
 
 // TODO - gestures for movement
 
