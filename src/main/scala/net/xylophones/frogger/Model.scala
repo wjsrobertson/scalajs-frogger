@@ -28,6 +28,7 @@ object Config {
   val green = "#00FF00"
   val pointsForUnusedSecond = 10
   val pointsForReachingHome = 50
+  val pointsForEatingInsect = 200
   val pointsForCompletingLevel = 1000
   val homeAlligatorStayTimeTicks = 200
   val homeInsectStayTimeTicks = 200
@@ -128,7 +129,7 @@ object HomeContent {
 
   case object Frog extends Content('F')
 
-  case object Insect extends Content('B')
+  case object Insect extends Content('I')
 
   case object Alligator extends Content('A')
 

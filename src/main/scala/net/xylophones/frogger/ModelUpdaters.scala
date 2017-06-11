@@ -13,7 +13,8 @@ abstract class ModelUpdater(states: PlayState.State*) {
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer,
     FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, FrogRestartAfterHomePauseUpdater,
-    NextLevelUpdater, NewGameUpdater, HomeTimerUpdater, HomeContentRemover, HomeContentsUpdater)
+    NextLevelUpdater, NewGameUpdater, HomeTimerUpdater, HomeContentRemover, AligatorHomeContentsUpdater,
+    InsectHomeContentsUpdater)
 }
 
 object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
@@ -107,13 +108,15 @@ object FrogHomeLander extends ModelUpdater(PlayState.InPlay) {
     .map { case ((h, _), i) =>
       val newHome = HomeFactory.create(i, HomeContent.Frog)
       val newHomes = model.layers.homes.patch(i, Seq(newHome), 1)
+      val pointsForEatingInsect = if (h.content == HomeContent.Insect) Config.pointsForEatingInsect else 0
+      val pointsForRemainingTime = model.timeRemainingSecs() * Config.pointsForUnusedSecond
+
       model.copy(
         layers = model.layers.copy(homes = newHomes),
-        score = model.score + Config.pointsForReachingHome + model.timeRemainingSecs() * Config.pointsForUnusedSecond,
+        score = model.score + Config.pointsForReachingHome + pointsForEatingInsect + pointsForRemainingTime,
         playState = PlayState.HomePause,
         homePauseTimer = Config.homePauseTime,
-        sounds = model.sounds :+ Sounds.Home :+ Sounds.soundForHome(h.id)
-      )
+        sounds = model.sounds :+ Sounds.Home :+ Sounds.soundForHome(h.id))
     }.getOrElse(model)
 }
 
@@ -263,8 +266,6 @@ object HomeTimerUpdater extends ModelUpdater(PlayState.all: _*) {
     if (model.homeTimers.nonEmpty) {
       val newTimers = model.homeTimers.map { case (id, t) => id -> (t + 1) }
 
-      println(s"old: ${model.homeTimers} / new: $newTimers")
-
       model.copy(homeTimers = newTimers)
     } else model
   }
@@ -295,19 +296,27 @@ object HomeContentRemover extends ModelUpdater(PlayState.all: _*) {
   }
 }
 
-object HomeContentsUpdater extends ModelUpdater(PlayState.all: _*) {
+object AligatorHomeContentsUpdater extends ModelUpdater(PlayState.all: _*) {
+  def update(model: Model): Model = HomeContentsUpdater.update(model, HomeContent.Alligator, 5000)
+}
+
+object InsectHomeContentsUpdater extends ModelUpdater(PlayState.all: _*) {
+  def update(model: Model): Model = HomeContentsUpdater.update(model, HomeContent.Insect, 5000)
+}
+
+object HomeContentsUpdater {
   val rand = new Random()
 
-  def update(model: Model): Model = {
-    val aligatorPresent = model.layers.homes.exists(_.content == HomeContent.Alligator)
-    val appear = !aligatorPresent && rand.nextInt(5000) < 10
+  def update(model: Model, contentType: HomeContent.Content, appearLikelihood: Int): Model = {
+    val alreadyPresent = model.layers.homes.exists(_.content == contentType)
+    val appear = !alreadyPresent && rand.nextInt(appearLikelihood) < 10
 
     if (appear) {
       val emptyHomes = model.layers.homes.filter(_.content == HomeContent.Empty).zipWithIndex
-      val appearIn = rand.nextInt(emptyHomes.size -1)
+      val appearIn = rand.nextInt(emptyHomes.size - 1)
       val home = emptyHomes(appearIn)._1
 
-      val newHome = HomeFactory.create(home.id, HomeContent.Alligator)
+      val newHome = HomeFactory.create(home.id, contentType)
       val newHomes = model.layers.homes.patch(home.id, Seq(newHome), 1)
 
       model.copy(
@@ -321,8 +330,8 @@ object HomeContentsUpdater extends ModelUpdater(PlayState.all: _*) {
 // TODO - gestures for movement
 
 /*
-Every safe step scores 10 points, and every frog arriving home scores 50 points plus 10 per unused second.
-Guiding a lady frog home or eating a fly scores 200 points), and when all
-5 frogs are home to end the level the player earns 1,000 points.
+done Every safe step scores 10 points, and every frog arriving home scores 50 points plus 10 per unused second.
+done Guiding a lady frog home or eating a fly scores 200 points), and when all
+done 5 frogs are home to end the level the player earns 1,000 points.
 Players earn an extra life at 10,000 or 20,000 points, and none thereafter.
  */
