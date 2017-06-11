@@ -57,12 +57,12 @@ class RectangleTest extends FunSuite with Matchers with MockitoSugar with Before
   }
 
   test("Rectangle does not intersect with other non-overlapping Rectangles") {
-    val rectPos = Vector(0, 0)
     val rect = new Rectangle(5, 5, 10, 10)
 
     val nonOverlapping = Table(
       ("rect pos", "other rect", "other pos"),
-      (Vector(0, 0), new Rectangle(17, 17, 10, 10), Vector(0, 0)),
+      (Vector(0, 0), new Rectangle(15, 15, 10, 10), Vector(0, 0)),
+      (Vector(0, 0), new Rectangle(16, 16, 10, 10), Vector(0, 0)),
       (Vector(10, 10), new Rectangle(28, 28, 10, 10), Vector(0, 0)),
       (Vector(0, 0), new Rectangle(10, 10, 10, 10), Vector(6, 6))
     )
@@ -70,5 +70,32 @@ class RectangleTest extends FunSuite with Matchers with MockitoSugar with Before
     forAll(nonOverlapping) { (pos: Vector, other: Rectangle, otherPos: Vector) =>
       rect.intersects(pos, other, otherPos) shouldBe false
     }
+  }
+
+  test("Rectangle with padding does not intersect with other non-overlapping Rectangles") {
+    val rectWithPadding = new Rectangle(5, 5, 10, 10, 1)
+    val rectNoPadding = new Rectangle(14, 14, 10, 10)
+
+    val intersects = rectWithPadding.intersects(Vector(0, 0), rectNoPadding, Vector(0, 0))
+
+    intersects shouldBe false
+  }
+
+  test("Two rectangles with padding do not intersect") {
+    val rectWithPadding = new Rectangle(5, 5, 10, 10, 1)
+    val rectNoPadding = new Rectangle(13, 13, 10, 10, 1)
+
+    val intersects = rectWithPadding.intersects(Vector(0, 0), rectNoPadding, Vector(0, 0))
+
+    intersects shouldBe false
+  }
+
+  test("Two rectangles with padding do not intersect other way around") {
+    val rectWithPadding = new Rectangle(13, 13, 10, 10, 1)
+    val rectNoPadding = new Rectangle(5, 5, 10, 10, 1)
+
+    val intersects = rectWithPadding.intersects(Vector(0, 0), rectNoPadding, Vector(0, 0))
+
+    intersects shouldBe false
   }
 }

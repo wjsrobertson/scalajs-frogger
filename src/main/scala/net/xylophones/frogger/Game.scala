@@ -44,12 +44,13 @@ trait Rectangular {
 
   // TODO padding and get rid of negation
   def intersects(position: Vector, other: Rectangular, otherPosition: Vector) = {
-    !(position.x + x >= otherPosition.x + other.width || otherPosition.x >= position.x + x + width ||
-      position.y + y >= otherPosition.y + other.height || otherPosition.y >= position.y + y + height)
+    position.x + x + padding < otherPosition.x + other.x + other.width - other.padding &&
+      other.x + otherPosition.x + other.padding < position.x + x + width - padding &&
+      position.y + y + padding < otherPosition.y + other.y + other.height - other.padding &&
+      other.y + otherPosition.y + other.padding < position.y + y + height - padding
   }
 
   // position and point are global coords
-  // TODO - use padding
   def contains(position: Vector, point: Vector) = {
     val px = point.x
     val py = point.y

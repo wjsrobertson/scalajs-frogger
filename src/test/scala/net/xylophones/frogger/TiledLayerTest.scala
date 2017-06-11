@@ -15,8 +15,7 @@ class TiledLayerTest extends FunSuite with Matchers with MockitoSugar with Befor
   when(htmlImage.width).thenReturn(20)
   when(htmlImage.height).thenReturn(10)
   val tiledImage = new TiledImage(image, 10, 10)
-  val tiles = Array(Array(Tile(0, 0, 0), Tile(1, 0, 1)))
-
+  val tiles = Array(Array(Tile(0, 0, CellType.Deadly), Tile(1, 0, CellType.Deadly)))
   val underTest = new TiledLayer(tiledImage, 1, 2, tiles)
 
   test("TiledLayer contains Rectangles with correct local offset") {

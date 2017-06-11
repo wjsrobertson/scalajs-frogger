@@ -11,7 +11,7 @@ class FrogCollisionCheckerTest extends FunSuite with Matchers with FroggerTestSu
 
   test("FrogDeathChecker sets frog death timer when frog intersects with deadly cell") {
     val frogSprite = createSprite(5, 5)
-    val channel = new Channel(Array(Cell.Car1), 0, createTiledImage(10, 10))
+    val channel = new Channel(Array(Array(Tile(0, 0, CellType.Deadly))), 0, createTiledImage(10, 10))
     val chPosition = Vector(10, 10)
     val fPosition = Vector(10, 10)
 
