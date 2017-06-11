@@ -6,7 +6,7 @@ class Channel(tiles: Array[Array[Tile]], val velocity: Int, tiledImage: TiledIma
 
 object Channel {
   def channels(level: Int): Seq[Channel] = {
-    val tiledImage = new TiledImage(Image("img/tiles.png"), 32, 32)
+
 
     levels(level-1).split("\n")
       .map(_.trim)
@@ -18,7 +18,7 @@ object Channel {
         val tiles = cells.map(c => Tile(c.id, 0, c.cellType))
         (vel, tiles)
       }
-      .map { case (velocity, cells) => new Channel(Array(cells), velocity, tiledImage) }
+      .map { case (velocity, cells) => new Channel(Array(cells), velocity, Images.tiles) }
   }
 
   private val cell = Map(

@@ -51,10 +51,6 @@ case class Model(score: Int = 0,
                  homeTimers: Map[Int, Int] = Map(),
                  lowOnTime: Boolean = false) {
 
-  def inPlay() = lives > 0
-
-  def inDeathAnimation() = frogDeathTimer > 0
-
   def levelDurationMs() = System.currentTimeMillis() - levelStartTimeMs
 
   def timeRemainingSecs() = Math.ceil((Config.levelTimeLimitMs - levelDurationMs()) / 1000).toInt
@@ -68,8 +64,6 @@ case class Model(score: Int = 0,
   }
 
   def homesWithPositions(): Seq[(Home, Vector)] = layers.homes zip Layers.homesPositions
-
-  def homeContents(): Map[Int, HomeContent.Content] = layers.homes.map(h => h.id -> h.content).toMap
 }
 
 case class Layers(scoreTitle: ScoreTitleLayer,
@@ -142,8 +136,8 @@ object Layers {
   private val scoreSpace = new BackgroundLayer(32 * 16, 16, Config.darkBlue)
   private val homePlaceholder = new BackgroundLayer(32 * 16, 48, Config.green)
 
-  private val frog = new Sprite(Image("img/frog.png"), 22)
-  private val deadFrog = new Sprite(Image("img/deadfrog.png"), 22)
+  private val frog = new Sprite(Images.frog, 22)
+  private val deadFrog = new Sprite(Images.deadFrog, 22)
   private val frogLayer = new FrogLayer(frog, deadFrog)
 
   private val statusLayer = new StatusLayer

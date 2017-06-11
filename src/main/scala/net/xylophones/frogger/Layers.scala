@@ -2,10 +2,9 @@ package net.xylophones.frogger
 
 import net.xylophones.frogger.App.ctx
 import org.scalajs.dom.CanvasRenderingContext2D
+import net.xylophones.frogger.Images._
 
 class ScoreTitleLayer extends Layer(Config.gameWidth, Config.scoreTitleHeight) {
-  val oneUp = Image("img/1_up.png")
-  val highScore = Image("img/high_score.png")
 
   // TODO - don't use magic variables here
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
@@ -20,7 +19,6 @@ class ScoreTitleLayer extends Layer(Config.gameWidth, Config.scoreTitleHeight) {
 }
 
 class ScoreLayer extends Layer(Config.gameWidth, Config.scoreHeight) {
-  val nums = Image("img/numbers.png")
   val tileSize = 16
   // TODO - don't use magic variables here
 
@@ -49,9 +47,6 @@ class ScoreLayer extends Layer(Config.gameWidth, Config.scoreHeight) {
 
 // TODO - can I use a shorter version of drawImage ?
 class StatusLayer extends Layer(Config.gameWidth, Config.statusHeight) {
-  val lifeImage = Image("img/life.png")
-  val levelImage = Image("img/level2.png")
-
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
     context.fillStyle = "#000000"
     context.strokeStyle = "#000000"
@@ -70,8 +65,6 @@ class StatusLayer extends Layer(Config.gameWidth, Config.statusHeight) {
 }
 
 class TimeLayer extends Layer(Config.gameWidth, Config.timeHeight) {
-  private val timeImage = Image("img/time.png")
-
   // TODO - clean this garbage up
   override def draw(context: CanvasRenderingContext2D, position: Vector, model: Model): Unit = {
     context.fillStyle = "#000000"

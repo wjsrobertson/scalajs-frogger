@@ -2,14 +2,16 @@ package net.xylophones.frogger
 
 import org.scalajs.dom
 import org.scalajs.dom.document
-import org.scalajs.dom.html.Canvas
+import org.scalajs.dom.html.{Canvas}
 
 import scala.scalajs.js.JSApp
 import scala.scalajs.js.timers._
 
 object App extends JSApp {
-  val canvas = document.createElement("canvas").asInstanceOf[Canvas]
+  private val canvas = document.getElementById("frogger").asInstanceOf[Canvas]
   val ctx = canvas.getContext("2d").asInstanceOf[dom.CanvasRenderingContext2D]
+  private val mediaPath = canvas.getAttribute("mediaPath")
+  private val soundPlayer = new SoundPlayer(mediaPath)
 
   def main(): Unit = {
     addCanvas()
@@ -36,7 +38,7 @@ object App extends JSApp {
       (updatedModel: Model, updater: ModelUpdater) => updater.updateIfApplicable(updatedModel)
     }
 
-    for (s <- newModel.sounds) {SoundPlayer.play(s)}
+    for (s <- newModel.sounds) {soundPlayer.play(s)}
 
     newModel.copy(sounds = Seq())
   }
@@ -45,13 +47,11 @@ object App extends JSApp {
     (model.layers.all zip model.positions).foreach { case (l, p) => l.draw(ctx, p, model) }
 
     model.layers.frogLayer.draw(ctx, model.frogPosition, model)
-    //model.layers.frog.draw(ctx, model.frogPosition, model.frogFacing.frame)
   }
 
   def addCanvas(): Unit = {
     canvas.width = 512
     canvas.height = (0.95 * dom.window.innerHeight).toInt
-    //canvas.style.backgroundColor = "#FF0000"
     document.body.appendChild(canvas)
   }
 }

@@ -313,7 +313,7 @@ object HomeContentsUpdater {
 
     if (appear) {
       val emptyHomes = model.layers.homes.filter(_.content == HomeContent.Empty).zipWithIndex
-      val appearIn = rand.nextInt(emptyHomes.size - 1)
+      val appearIn = rand.nextInt(emptyHomes.size)
       val home = emptyHomes(appearIn)._1
 
       val newHome = HomeFactory.create(home.id, contentType)

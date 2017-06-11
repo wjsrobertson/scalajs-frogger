@@ -27,10 +27,10 @@ object Audio {
   }
 }
 
-object SoundPlayer {
-  private val sounds: Map[Sounds.Sound, Audio] = Sounds.all.map(s => s -> Audio(s.path)).toMap
+class SoundPlayer(rootPath: String) {
+  private val sounds: Map[Sounds.Sound, Audio] = Sounds.all.map(s => s -> Audio(s"$rootPath${s.path}")).toMap
 
-  def stopMusic(): Unit = for {
+  private def stopMusic(): Unit = for {
     (s, a) <- sounds if s.soundType == SoundType.Music
   } a.stop()
 
