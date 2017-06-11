@@ -52,6 +52,5 @@ object App extends JSApp {
   def addCanvas(): Unit = {
     canvas.width = Config.gameWidth
     canvas.height = Config.gameHeight
-    document.body.appendChild(canvas)
   }
 }
