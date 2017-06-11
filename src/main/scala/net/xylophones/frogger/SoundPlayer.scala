@@ -5,13 +5,15 @@ import org.scalajs.dom.raw.{Event, HTMLAudioElement}
 
 class Audio(element: HTMLAudioElement) {
   def play() = {
+    element.currentTime = 0
     element.oncanplay = { (_: Event) =>
       element.play()
     }
-    stop()
+    element.pause()
   }
 
   def stop() = {
+    element.oncanplay = { (_: Event) => {} }
     element.currentTime = 0
     element.pause()
   }
