@@ -18,10 +18,12 @@ object UserInput {
 
   global.addEventListener("keydown", (e: dom.KeyboardEvent) => {
     keys += e.keyCode
+    e.preventDefault()
   }, false)
 
   global.addEventListener("keyup", (e: dom.KeyboardEvent) => {
     keys -= e.keyCode
+    e.preventDefault()
   }, false)
 
   def direction(): Option[Direction.Dir] = keys.flatMap(directionKeyCodes.get).headOption
