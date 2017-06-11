@@ -75,5 +75,5 @@ object HomeFactory {
   }
 }
 
-class Home(id: Int, tiles: Array[Array[Tile]], val content: HomeContent.Content)
+class Home(val id: Int, tiles: Array[Array[Tile]], val content: HomeContent.Content)
   extends TiledLayer(new TiledImage(Image("img/top.png"), 8, 16), 3, 13, tiles)

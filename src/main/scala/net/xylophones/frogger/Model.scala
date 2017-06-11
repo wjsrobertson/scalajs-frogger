@@ -13,6 +13,7 @@ object Config {
   val frogMinY = scorePanelHeight
   val frogMaxY = scorePanelHeight + homeHeight + channelsHeight - (channelHeight - frogHeight) / 2
   val frogDeathTime = 20
+  val homePauseTime = 20
   val timeImageWidth = 64
   // TODO - replace all these 16's with a single val - smallTileHeight
   val timeHeight = 16
@@ -32,11 +33,12 @@ case class Model(score: Int = 0,
                  level: Int = 1,
                  levelStartTimeMs: Long = System.currentTimeMillis(),
                  frogJumpTimer: Int = 0,
+                 frogDeathTimer: Int = 0,
+                 homePauseTimer: Int = 0,
                  frogPosition: Vector = Vector(0, 0),
                  frogFacing: Direction.Dir = Direction.Up,
                  positions: Seq[Vector],
                  layers: Layers,
-                 frogDeathTimer: Int = 0,
                  playState: PlayState.State = PlayState.InPlay,
                  homeContents: Seq[HomeContent.Content] = (0 to 5).map(_ => HomeContent.Empty),
                  sounds: Seq[Sounds.Sound] = Seq()) {
@@ -84,11 +86,13 @@ object PlayState {
 
   case object FrogDeathAnimation extends State
 
+  case object HomePause extends State
+
   case object NotInPlay extends State
 
   val inGameStates = Seq(InPlay, FrogDeathAnimation)
 
-  val all = Seq(InPlay, FrogDeathAnimation, NotInPlay)
+  val all = Seq(InPlay, FrogDeathAnimation, HomePause, NotInPlay)
 }
 
 object Direction {

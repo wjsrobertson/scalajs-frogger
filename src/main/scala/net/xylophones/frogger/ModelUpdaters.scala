@@ -1,6 +1,6 @@
 package net.xylophones.frogger
 
-abstract class ModelUpdater(states: Seq[PlayState.State]) {
+abstract class ModelUpdater(states: PlayState.State*) {
   def updateIfApplicable(model: Model): Model =
     if (states.contains(model.playState)) update(model)
     else model
@@ -10,10 +10,10 @@ abstract class ModelUpdater(states: Seq[PlayState.State]) {
 
 object ModelUpdaters {
   val updaters = Seq(TimerUpdater, ChannelUpdater, FrogMoveUpdater, FrogChannelLander, FrogPositionConstrainer,
-    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, NextLevelUpdater, NewGameUpdater)
+    FrogCollisionChecker, NextLifeUpdater, HighScoreModelUpdater, FrogHomeLander, FrogRestartAfterHomePauseUpdater, NextLevelUpdater, NewGameUpdater)
 }
 
-object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates) {
+object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     val userDirection = UserInput.direction()
 
@@ -43,7 +43,7 @@ object FrogMoveUpdater extends ModelUpdater(PlayState.inGameStates) {
   }
 }
 
-object FrogPositionConstrainer extends ModelUpdater(Seq(PlayState.InPlay)) {
+object FrogPositionConstrainer extends ModelUpdater(PlayState.InPlay) {
   def update(model: Model): Model = {
     import Config._
 
@@ -63,7 +63,7 @@ object FrogPositionConstrainer extends ModelUpdater(Seq(PlayState.InPlay)) {
   }
 }
 
-object FrogChannelLander extends ModelUpdater(PlayState.inGameStates) {
+object FrogChannelLander extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
 
     val landingChannel = model.channelsWithPositions()
@@ -77,7 +77,7 @@ object FrogChannelLander extends ModelUpdater(PlayState.inGameStates) {
   }
 }
 
-object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
+object FrogCollisionChecker extends ModelUpdater(PlayState.InPlay) {
   def update(model: Model): Model = {
     import ChannelCollisionChecker._
 
@@ -91,7 +91,7 @@ object FrogCollisionChecker extends ModelUpdater(Seq(PlayState.InPlay)) {
   }
 }
 
-object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
+object FrogHomeLander extends ModelUpdater(PlayState.InPlay) {
 
   import ChannelCollisionChecker._
 
@@ -108,40 +108,64 @@ object FrogHomeLander extends ModelUpdater(Seq(PlayState.InPlay)) {
       model.copy(
         layers = model.layers.copy(homes = newHomes),
         score = model.score + 50,
-        frogPosition = Layers.initialFrogPosition,
-        levelStartTimeMs = System.currentTimeMillis(),
-        frogJumpTimer = 0,
-        frogFacing = Direction.Up,
-        sounds = model.sounds :+ Sounds.Home
+        playState = PlayState.HomePause,
+        homePauseTimer = Config.homePauseTime,
+        sounds = model.sounds :+ Sounds.Home :+ Sounds.soundForHome(h.id)
       )
     }.getOrElse(model)
 }
 
-object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates) {
+object FrogRestartAfterHomePauseUpdater extends ModelUpdater(PlayState.HomePause) {
+
+  def update(model: Model): Model = {
+    if (model.homePauseTimer > 1)
+      model.copy(homePauseTimer = model.homePauseTimer - 1)
+    else {
+      model.copy(
+        frogPosition = Layers.initialFrogPosition,
+        levelStartTimeMs = System.currentTimeMillis(),
+        frogJumpTimer = 0,
+        frogFacing = Direction.Up,
+        playState = PlayState.InPlay)
+    }
+  }
+}
+
+object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     if (model.frogDeathTimer == 1) {
       if (model.lives == 1) {
-        model.copy(playState = PlayState.NotInPlay, frogDeathTimer = 0, lives = 0)
+        model.copy(
+          playState = PlayState.NotInPlay,
+          frogDeathTimer = 0,
+          lives = 0,
+          sounds = model.sounds :+ Sounds.GameOver
+        )
       } else {
-        model.copy(lives = model.lives - 1, frogPosition = Layers.initialFrogPosition, frogDeathTimer = 0,
-          playState = PlayState.InPlay, frogJumpTimer = 0, frogFacing = Direction.Up,
+        model.copy(lives = model.lives - 1,
+          frogPosition = Layers.initialFrogPosition,
+          frogDeathTimer = 0,
+          playState = PlayState.InPlay,
+          frogJumpTimer = 0,
+          frogFacing = Direction.Up,
           levelStartTimeMs = System.currentTimeMillis())
       }
     } else model
   }
 }
 
-object TimerUpdater extends ModelUpdater(PlayState.inGameStates) {
+object TimerUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     if (model.frogDeathTimer > 1)
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
     else if (model.levelDurationMs() > Config.levelTimeLimitMs && model.frogDeathTimer == 0)
-           model.copy(frogDeathTimer = Config.frogDeathTime, playState = PlayState.FrogDeathAnimation) // make it so you don't have to set these at same time
+           model.copy(frogDeathTimer = Config.frogDeathTime,
+             playState = PlayState.FrogDeathAnimation) // make it so you don't have to set these at same time
     else model
   }
 }
 
-object ChannelUpdater extends ModelUpdater(PlayState.all) {
+object ChannelUpdater extends ModelUpdater(PlayState.all: _*) {
   def update(model: Model): Model = {
     val channelPositions: Seq[Vector] = (model.layers.all zip model.positions)
       .filter(_._1.isInstanceOf[Channel])
@@ -171,14 +195,14 @@ object ChannelUpdater extends ModelUpdater(PlayState.all) {
   }
 }
 
-object HighScoreModelUpdater extends ModelUpdater(PlayState.inGameStates) {
+object HighScoreModelUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     if (model.score > model.highScore) model.copy(highScore = model.score)
     else model
   }
 }
 
-object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
+object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     if (model.layers.homes.count(_.content == HomeContent.Frog) == 5)
       model.copy(
@@ -198,7 +222,7 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates) {
 }
 
 // TODO - common with code above execpt lives
-object NewGameUpdater extends ModelUpdater(PlayState.all) {
+object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
   def update(model: Model): Model = {
     if (UserInput.newGame()) {
       model.copy(
@@ -215,12 +239,14 @@ object NewGameUpdater extends ModelUpdater(PlayState.all) {
         lives = 3,
         frogDeathTimer = 0,
         playState = PlayState.InPlay,
-        sounds = model.sounds :+ Sounds.LadyFrog
+        sounds = model.sounds :+ Sounds.Theme
       )
     }
     else model
   }
 }
+
+// TODO - time should hav awarning and be coloured red when short time remaining
 
 /*
 Every safe step scores 10 points, and every frog arriving home scores 50 points plus 10 per unused second.
