@@ -26,8 +26,8 @@ object Config {
   val darkBlue = "#00002A"
   val black = "#000000"
   val green = "#00FF00"
-  val pointsForUnusedSecond = 10
-  val pointsForReachingHome = 50
+  val pointsForUnusedSecond: Int = 10
+  val pointsForReachingHome: Int = 50
 }
 
 case class Model(score: Int = 0,
@@ -52,6 +52,8 @@ case class Model(score: Int = 0,
   def inDeathAnimation() = frogDeathTimer > 0
 
   def levelDurationMs() = System.currentTimeMillis() - levelStartTimeMs
+
+  def timeRemainingSecs() = Math.ceil((Config.levelTimeLimitMs - levelDurationMs()) / 1000).toInt
 
   def channelsWithPositions(): Seq[(Channel, Vector)] = {
     val channelsPos: Seq[(Vector)] = (layers.all zip positions)

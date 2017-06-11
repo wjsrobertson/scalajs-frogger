@@ -107,7 +107,7 @@ object FrogHomeLander extends ModelUpdater(PlayState.InPlay) {
       // TODO - no magic values
       model.copy(
         layers = model.layers.copy(homes = newHomes),
-        score = model.score + 50,
+        score = model.score + Config.pointsForReachingHome + model.timeRemainingSecs() * Config.pointsForUnusedSecond,
         playState = PlayState.HomePause,
         homePauseTimer = Config.homePauseTime,
         sounds = model.sounds :+ Sounds.Home :+ Sounds.soundForHome(h.id)
@@ -255,7 +255,9 @@ object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
   }
 }
 
-// TODO - time should hav awarning and be coloured red when short time remaining
+// TODO - home animations
+
+// TODO - gestures for movement
 
 /*
 Every safe step scores 10 points, and every frog arriving home scores 50 points plus 10 per unused second.
