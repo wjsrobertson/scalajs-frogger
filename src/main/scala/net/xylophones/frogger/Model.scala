@@ -21,10 +21,13 @@ object Config {
   val scoreTitleHeight = 16
   val scoreHeight = 16
   val levelTimeLimitMs = 60000
+  val levelTimeLimitWarningMs = 55000
   val pointsForJump = 10
   val darkBlue = "#00002A"
   val black = "#000000"
   val green = "#00FF00"
+  val pointsForUnusedSecond = 10
+  val pointsForReachingHome = 50
 }
 
 case class Model(score: Int = 0,
@@ -32,16 +35,17 @@ case class Model(score: Int = 0,
                  lives: Int = 3,
                  level: Int = 1,
                  levelStartTimeMs: Long = System.currentTimeMillis(),
-                 frogJumpTimer: Int = 0,
-                 frogDeathTimer: Int = 0,
-                 homePauseTimer: Int = 0,
+                 frogJumpTimer: Int = 0, // TODO - change this to Option maybe?
+                 frogDeathTimer: Int = 0,// TODO - change this to Option maybe?
+                 homePauseTimer: Int = 0,// TODO - change this to Option maybe?
                  frogPosition: Vector = Vector(0, 0),
                  frogFacing: Direction.Dir = Direction.Up,
                  positions: Seq[Vector],
                  layers: Layers,
                  playState: PlayState.State = PlayState.InPlay,
                  homeContents: Seq[HomeContent.Content] = (0 to 5).map(_ => HomeContent.Empty),
-                 sounds: Seq[Sounds.Sound] = Seq()) {
+                 sounds: Seq[Sounds.Sound] = Seq(),
+                 lowOnTime: Boolean = false) {
 
   def inPlay() = lives > 0
 

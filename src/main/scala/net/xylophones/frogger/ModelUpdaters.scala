@@ -139,7 +139,8 @@ object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
           playState = PlayState.NotInPlay,
           frogDeathTimer = 0,
           lives = 0,
-          sounds = model.sounds :+ Sounds.GameOver
+          sounds = model.sounds :+ Sounds.GameOver,
+          lowOnTime = false
         )
       } else {
         model.copy(lives = model.lives - 1,
@@ -148,6 +149,7 @@ object NextLifeUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
           playState = PlayState.InPlay,
           frogJumpTimer = 0,
           frogFacing = Direction.Up,
+          lowOnTime = false,
           levelStartTimeMs = System.currentTimeMillis())
       }
     } else model
@@ -158,9 +160,14 @@ object TimerUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
   def update(model: Model): Model = {
     if (model.frogDeathTimer > 1)
       model.copy(frogDeathTimer = model.frogDeathTimer - 1)
-    else if (model.levelDurationMs() > Config.levelTimeLimitMs && model.frogDeathTimer == 0)
+    else if (model.levelDurationMs() > Config.levelTimeLimitMs /* && model.frogDeathTimer == 0*/ )
            model.copy(frogDeathTimer = Config.frogDeathTime,
-             playState = PlayState.FrogDeathAnimation) // make it so you don't have to set these at same time
+             playState = PlayState.FrogDeathAnimation,
+             sounds = model.sounds :+ Sounds.DieOnRoad) // make it so you don't have to set these at same time
+    else if (!model.lowOnTime && model.levelDurationMs() > Config.levelTimeLimitWarningMs)
+           model.copy(
+             lowOnTime = true,
+             sounds = model.sounds :+ Sounds.TimeLow)
     else model
   }
 }
@@ -215,7 +222,8 @@ object NextLevelUpdater extends ModelUpdater(PlayState.inGameStates: _*) {
         frogPosition = Layers.initialFrogPosition,
         levelStartTimeMs = System.currentTimeMillis(),
         frogJumpTimer = 0,
-        frogFacing = Direction.Up
+        frogFacing = Direction.Up,
+        lowOnTime = false
       )
     else model
   }
@@ -239,7 +247,8 @@ object NewGameUpdater extends ModelUpdater(PlayState.all: _*) {
         lives = 3,
         frogDeathTimer = 0,
         playState = PlayState.InPlay,
-        sounds = model.sounds :+ Sounds.Theme
+        sounds = model.sounds :+ Sounds.Theme,
+        lowOnTime = false
       )
     }
     else model

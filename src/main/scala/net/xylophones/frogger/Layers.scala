@@ -88,9 +88,15 @@ class TimeLayer extends Layer(Config.gameWidth, Config.timeHeight) {
       val start = fullLength.toDouble * usedRatio
       val w = fullLength.toDouble * remainingRatio.toDouble
 
-      context.fillStyle = "#00FF00"
-      context.strokeStyle = "#00FF00"
-      context.fillRect(start, position.y, w, Config.timeHeight)
+      if (model.lowOnTime) {
+        context.fillStyle = "#FF0000"
+        context.strokeStyle = "#FF0000"
+        context.fillRect(start, position.y, w, Config.timeHeight)
+      } else {
+        context.fillStyle = "#00FF00"
+        context.strokeStyle = "#00FF00"
+        context.fillRect(start, position.y, w, Config.timeHeight)
+      }
     }
 
     context.drawImage(timeImage.element, 0, 0, timeImage.width, timeImage.height, imageX, position.y, timeImage.width, timeImage.height)
