@@ -81,7 +81,7 @@ object Sounds {
 
   private val soundsForHomes = Map(0 -> Home0, 1 -> Home1, 2 -> Home2, 3 -> Home3, 4 -> Home4, 5 -> Home5)
 
-  val all: Seq[Sound] = Seq(LadyFrog, Home, Jump, DieInWater, DieOnRoad, Start, Theme, Home0, Home1, Home2, Home3, Home4, Home5)
+  val all: Seq[Sound] = Seq(LadyFrog, Home, Jump, DieInWater, DieOnRoad, GameOver, Start, Theme, Home0, Home1, Home2, Home3, Home4, Home5)
 
   val music: Seq[Sound] = all.filter(_.soundType == SoundType.Music)
 
